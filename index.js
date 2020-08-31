@@ -6,13 +6,12 @@ const {arrayRandom, trueTrim, plusminus, pluralize} = require("./functions")
 const telegram = new Telegram(config.token)
 const bot = new Telegraf(config.token)
 let timeouts = {}
-const greetMessage = trueTrim(`
+
+const getGreetMessage = isGroup => trueTrim(`
 	👋 Привет. Я — бот для игры в «угадай возраст» в групповых чатах.
 
 	📋 Правила просты: я кидаю вам фото человека, а ваша задача угадать его возраст. Чем точнее вы отвечаете, тем меньше баллов теряете.
-	
-	😉 Для начала, добавь меня в чат и вызови /start.
-
+	${isGroup ? "" : "\n😉 Для начала, добавь меня в чат и вызови /game.\n"}
 	*Команды*
 	/game - Начать игру
 	/stop - Остановить игру
@@ -21,7 +20,6 @@ const greetMessage = trueTrim(`
 	Автор: @mikhailsdv
 	Мой канал: @FilteredInternet
 `)
-
 const getRandomPerson = () => {
 	let imagePath = "./photos"
 	let fimeName = arrayRandom(fs.readdirSync(imagePath))
@@ -201,7 +199,7 @@ bot.catch((err, ctx) => {
 })
 
 bot.start(async (ctx) => {
-	ctx.replyWithMarkdown(greetMessage)
+	ctx.replyWithMarkdown(getGreetMessage(ctx.update.message.chat.id < 0))
 })
 
 bot.command("game", (ctx) => {
@@ -258,7 +256,7 @@ bot.command("donate", (ctx) => {
 	`))
 })
 
-bot.on("text", async (ctx) => {
+bot.on("message", async (ctx) => {
 	let message = ctx.update.message
 	if (message.chat.id < 0) {
 		let chatId = message.chat.id
@@ -281,7 +279,7 @@ bot.on("text", async (ctx) => {
 			ctx.replyWithMarkdown(`📝 *${message.from.first_name}*, твой ответ принят (${memberAnswer}).`)
 		}
 		else if (message.new_chat_member && message.new_chat_member.id === config.botId) {
-			ctx.replyWithMarkdown(greetMessage)
+			ctx.replyWithMarkdown(getGreetMessage(true))
 		}
 	}
 })
