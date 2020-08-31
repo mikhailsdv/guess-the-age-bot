@@ -1,5 +1,5 @@
 # guess-the-age-bot
-..
+Telegram-bot for playing «guess the age» game in group chats.
 
 Links
 ----
