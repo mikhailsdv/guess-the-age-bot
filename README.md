@@ -1,0 +1,15 @@
+# guess-the-age-bot
+..
+
+Links
+----
+1. [Bot itself](https://t.me/GuessTheAgeBot)
+2. [Author's chanel](https://t.me/FilteredInternet)
+
+Usage
+---
+I send a photo of a person to your group chat, and your goal is to guess his age. The more accurately you answer, the less points you lose.
+
+Note
+---
+`/photos` folder and `db.json` file were excluded, so don't get confused.
