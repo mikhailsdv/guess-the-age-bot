@@ -92,23 +92,25 @@ const stopGame = (ctx, chatId) => {
 		for (let key in chat.members) {
 			let member = chat.members[key]
 			top.push({
-				text: `${member.firstName}: ${member.score.game} очков(а)`,
+				text: `*${member.firstName}*: ${member.score.game} ${pluralize(member.score.game, "очко", "очка", "очков")}`,
 				score: member.score.game
 			})
 			member.score.game = 0
 		}
 		db.update(chatId, ch => chat)
-		ctx.replyWithMarkdown(trueTrim(`
-			*🏁 А вот и победители:*
+		if (top.length > 0) {
+			ctx.replyWithMarkdown(trueTrim(`
+				*🏁 А вот и победители:*
 
-			${top.sort((a, b) => b.score - a.score).map((item, i) => `${["🏆","🎖","🏅"][i] || "🔸"} ${i + 1}. ${item.text}`).join("\n")}
+				${top.sort((a, b) => b.score - a.score).map((item, i) => `${["🏆","🎖","🏅"][i] || "🔸"} ${i + 1}. ${item.text}`).join("\n")}
 
-			❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
-			🔄 /game - Еще разок?
-		`))
+				❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
+				🔄 /game - Еще разок?
+			`))
+		}
 	}
 	else {
-		ctx.reply("❌ Игра не была запущена. Вы можете запутить ее командой /start")
+		ctx.reply("❌ Игра не была запущена. Вы можете запутить ее командой /start.")
 	}
 }
 const startGame = (ctx, chatId) => {
@@ -162,7 +164,11 @@ const startGame = (ctx, chatId) => {
 			
 			if (!top.every(item => item.memberAnswer === 0)) {
 				ctx.replyWithMarkdown(
-					`Человеку на этом фото *${answer} ${pluralize(answer, "год", "года", "лет")}*. Вот, кто бы ближе всего:\n\n${top.sort((a, b) => b.score - a.score).map((item, i) => `${["🏆","🎖","🏅"][i] || "🔸"} ${i + 1}. ${item.text}`).join("\n")}`,
+					trueTrim(`
+						Человеку на этом фото *${answer} ${pluralize(answer, "год", "года", "лет")}*. Вот, кто бы ближе всего:
+
+						${top.sort((a, b) => b.score - a.score).map((item, i) => `${["🏆","🎖","🏅"][i] || "🔸"} ${i + 1}. ${item.text}`).join("\n")}
+					`),
 					{
 						reply_to_message_id: guessMessage.message_id,
 					}

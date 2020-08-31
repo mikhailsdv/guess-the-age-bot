@@ -5,6 +5,7 @@ module.exports = {
 	plusminus: n => n > 0 ? `+${n}` : n,
 	trueTrim: str => str.replace(/\t+/gm, ""),
 	pluralize: (n, singular, plural, accusative) => {
+		n = Math.abs(n)
 		let n10 = n % 10;
 		let n100 = n % 100;
 		if (n10 == 1 && n100 != 11) {
