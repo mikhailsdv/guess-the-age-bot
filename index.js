@@ -5,8 +5,18 @@ const fs = require("fs")
 const {arrayRandom, trueTrim, plusminus, pluralize} = require("./functions")
 const telegram = new Telegram(config.token)
 const bot = new Telegraf(config.token)
-let timeouts = {}
 
+let gameStates = {}
+const createGameState = chatId => {
+	gameStates[chatId] = {
+		timeouts: {},
+		guessMessage: null,
+		currentRound: null,
+		currentTime: 0,
+		answersOrder: []
+	}
+	return gameStates[chatId]
+}
 const getGreetMessage = isGroup => trueTrim(`
 	👋 Привет. Я — бот для игры в «угадай возраст» в групповых чатах.
 
@@ -15,6 +25,7 @@ const getGreetMessage = isGroup => trueTrim(`
 	*Команды*
 	/game - Начать игру
 	/stop - Остановить игру
+	/top - Рейтинг игроков чата
 	/donate - Поддержать проект деньгами
 
 	Автор: @mikhailsdv
@@ -29,78 +40,62 @@ const getRandomPerson = () => {
 		photo: `${imagePath}/${fimeName}`
 	}
 }
+const iterateObject = (obj, f) => {
+	let index = 0
+	for (let key in obj) {
+		f(key, obj[key], index)
+		index++
+	}
+}
 const createChat = chatId => {
 	let data = {
 		isPlaying: true,
-		//rounds: 5,
-		rightAnswer: null,
-		membersAnswers: {},
 		members: {}
 	}
 	db.insert(chatId, data)
 }
+const createMember = firstName => {
+	return {
+		firstName: firstName,
+		isPlaying: true,
+		answer: null,
+		gameScore: 0,
+		totalScore: 0
+	}
+}
 const getChat = chatId => {
 	return db.get(chatId)
-}
-const setRightAnswer = (chatId, answer) => {
-	let chat = getChat(chatId)
-	chat.rightAnswer = answer
-	db.update(chatId, ch => chat)
-}
-const memberAddScore = (chatId, memberId, score) => {
-	let chat = getChat(chatId)
-	db.update(chatId, ch => {
-		ch.members[memberId].score.game += score
-		ch.members[memberId].score.total += score
-		return ch
-	})
-}
-const memberAdd = (chatId, memberId, firstName) => {
-	let chat = getChat(chatId)
-	let member = chat.members[memberId]
-	if (!member) {
-		db.update(chatId, ch => {
-			ch.members[memberId] = {
-				firstName: firstName,// || member.firstName,
-				score: {
-					game: 0,
-					total: 0
-				},
-			}
-			return ch
-		})
-	}
-	if (member && member.firstName !== firstName) {
-		db.update(chatId, ch => {
-			ch.members[memberId].firstName = firstName
-			return ch
-		})
-	}
 }
 const stopGame = (ctx, chatId) => {
 	let chat = getChat(chatId)
 	if (chat && chat.isPlaying) {
-		for (let tim in timeouts[chatId]) {
-			clearTimeout(timeouts[chatId][tim])
+		if (gameStates[chatId] && gameStates[chatId].timeouts) {
+			for (let key in gameStates[chatId].timeouts) {
+				clearTimeout(gameStates[chatId].timeouts[key])
+			}
 		}
 		chat.isPlaying = false
-		chat.rightAnswer = null
-		chat.membersAnswers = {}
 		let top = []
-		for (let key in chat.members) {
-			let member = chat.members[key]
-			top.push({
-				text: `*${member.firstName}*: ${member.score.game} ${pluralize(member.score.game, "очко", "очка", "очков")}`,
-				score: member.score.game
-			})
-			member.score.game = 0
-		}
+		iterateObject(chat.members, (memberId, member, memberIndex) => {
+			if (member.isPlaying) {
+				top.push({
+					firstName: member.firstName,
+					score: member.gameScore
+				})
+
+				Object.assign(member, {
+					answer: null,
+					isPlaying: false,
+					gameScore: 0
+				})
+			}
+		})
 		db.update(chatId, ch => chat)
 		if (top.length > 0) {
 			ctx.replyWithMarkdown(trueTrim(`
 				*🏁 А вот и победители:*
 
-				${top.sort((a, b) => b.score - a.score).map((item, i) => `${["🏆","🎖","🏅"][i] || "🔸"} ${i + 1}. ${item.text}`).join("\n")}
+				${top.sort((a, b) => b.score - a.score).map((member, index) => `${["🏆","🎖","🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`).join("\n")}
 
 				❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
 				🔄 /game - Еще разок?
@@ -111,87 +106,114 @@ const stopGame = (ctx, chatId) => {
 		ctx.reply("❌ Игра не была запущена. Вы можете запутить ее командой /start.")
 	}
 }
+const getRoundMessage = (chatId, round, time) => {
+	let chat = getChat(chatId)
+	let answers = []
+	iterateObject(chat.members, (memberId, member, memberIndex) => {
+		if (member.isPlaying && member.answer !== null) {
+			answers.push({
+				answer: member.answer,
+				firstName: member.firstName,
+				memberId: Number(memberId)
+			})
+		}
+	})
+	answers = answers.sort((a, b) => gameStates[chatId].answersOrder.indexOf(a.memberId) - gameStates[chatId].answersOrder.indexOf(b.memberId))
+
+	return trueTrim(`
+		*Раунд ${round + 1}/${config.rounds}*
+		Сколько, по-вашему, лет этому человеку?
+		${answers.length > 0 ? 
+			`\n${answers.map((member, index) => `${index + 1}. *${member.firstName}*: ${member.answer}`).join("\n")}\n`
+			:
+			""
+		}
+		${"⬛".repeat(time)}${"⬜".repeat(config.timerSteps - time)}
+	`)
+}
 const startGame = (ctx, chatId) => {
-	let round = async r => {
+	let gameState = createGameState(chatId)
+	let startRound = async round => {
 		let person = getRandomPerson()
-		let answer = person.age
-		setRightAnswer(chatId, answer)
+		let rightAnswer = person.age
 		let guessMessage = await ctx.replyWithPhoto({
 			source: person.photo,
 		}, {
-			caption: `*Раунд ${r + 1}/${config.rounds}*\nСколько, по-вашему, лет этому человеку?\n\n${"⬜".repeat(config.timerSteps)}`,
+			caption: getRoundMessage(chatId, round, 0),
 			parse_mode: "Markdown"
 		})
+		gameState.guessMessageId = guessMessage.message_id
+		gameState.currentRound = round
 
-		let tm = 1
-		timeouts[chatId].timer = setInterval(() => {
+		let time = 1
+		gameState.timeouts.timer = setInterval(() => {
+			gameState.currentTime = time
 			telegram.editMessageCaption(
 				ctx.chat.id,
 				guessMessage.message_id,
 				null,
-				`*Раунд ${r + 1}/${config.rounds}*\nСколько, по-вашему, лет этому человеку?\n\n${"⬛".repeat(tm)}${"⬜".repeat(config.timerSteps - tm)}`,
+				getRoundMessage(chatId, round, time),
 				{
 					parse_mode: "Markdown"
 				}
 			)
-			tm++
-			if (tm >= (config.timerSteps + 1)) clearInterval(timeouts[chatId].timer)
+			time++
+			if (time >= (config.timerSteps + 1)) clearInterval(gameState.timeouts.timer)
 		}, config.waitDelay / (config.timerSteps + 1))
 		
-		timeouts[chatId].round = setTimeout(() => {
-			let top = []
+		gameState.timeouts.round = setTimeout(() => {
 			let chat = getChat(chatId)
-			for (let userId in chat.membersAnswers) {
-				let memberAnswer = chat.membersAnswers[userId]
-				let firstName = chat.members[userId].firstName
-				let add = answer - Math.abs(answer - memberAnswer)
-				memberAddScore(chatId, userId, add)
-				let newScore = chat.members[userId].score.game + add
-				top.push({
-					text: `*${firstName}*: ${plusminus(add)}`,
-					score: add,
-					memberAnswer: memberAnswer
-				})
-			}
-			db.update(chatId, ch => {
-				for (let key in ch.membersAnswers) {
-					ch.membersAnswers[key] = 0
+			let top = []
+			iterateObject(chat.members, (memberId, member, memberIndex) => {
+				if (member.isPlaying) {
+					let addScore = member.answer === null ? 0 : rightAnswer - Math.abs(rightAnswer - member.answer)
+					chat.members[memberId].gameScore += addScore
+					chat.members[memberId].totalScore += addScore
+					top.push({
+						firstName: member.firstName,
+						addScore: addScore,
+						answer: member.answer
+					})
+					member.answer = null
+					db.update(chatId, ch => chat)
 				}
-				return ch
 			})
+			db.update(chatId, ch => chat)
 			
-			if (!top.every(item => item.memberAnswer === 0)) {
+			if (!top.every(member => member.answer === null)) {
 				ctx.replyWithMarkdown(
 					trueTrim(`
-						Человеку на этом фото *${answer} ${pluralize(answer, "год", "года", "лет")}*. Вот, кто бы ближе всего:
+						Человеку на этом фото *${rightAnswer} ${pluralize(rightAnswer, "год", "года", "лет")}*. Вот, кто был ближе всего:
 
-						${top.sort((a, b) => b.score - a.score).map((item, i) => `${["🏆","🎖","🏅"][i] || "🔸"} ${i + 1}. ${item.text}`).join("\n")}
+						${top.sort((a, b) => b.addScore - a.addScore).map((member, index) => `${["🏆","🎖","🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${plusminus(member.addScore)}`).join("\n")}
 					`),
 					{
 						reply_to_message_id: guessMessage.message_id,
 					}
 				)
 			}
-				
 			else {
 				ctx.reply("🤔 Похоже, вы не играете. Ок, завершаю игру...")
 				stopGame(ctx, chatId)
 				return
 			}
 
-			if (r === config.rounds - 1) {
-				timeouts[chatId].stopGame = setTimeout(() => {
+			if (round === config.rounds - 1) {
+				gameState.timeouts.stopGame = setTimeout(() => {
 					stopGame(ctx, chatId)
-				}, 500)
+				}, 1000)
 			}
 			else {
-				timeouts[chatId].afterRound = setTimeout(() => {
-					round(++r)
+				gameState.answersOrder = []
+				gameState.timeouts.afterRound = setTimeout(() => {
+					startRound(++round)
 				}, 2500)
 			}
 		}, config.waitDelay)
 	}
-	round(0)
+	gameState.timeouts.beforeGame = setTimeout(() => {
+		startRound(0)
+	}, 1000)
 }
 
 bot.catch((err, ctx) => {
@@ -215,7 +237,7 @@ bot.command("game", (ctx) => {
 				chat.isPlaying = true
 				for (let key in chat.members) {
 					let member = chat.members[key]
-					member.score.game = 0
+					member.gameScore = 0
 				}
 				db.update(chatId, ch => chat)
 			}
@@ -224,10 +246,7 @@ bot.command("game", (ctx) => {
 			createChat(chatId)
 		}
 		ctx.replyWithMarkdown("*Игра начинается!*")
-		timeouts[chatId] = {}
-		timeouts[chatId].beforeGame = setTimeout(() => {
-			startGame(ctx, chatId)
-		}, 1000)
+		startGame(ctx, chatId)
 	}
 	else {
 		ctx.reply("❌ Эта команда доступна только для чатов.")
@@ -256,29 +275,84 @@ bot.command("donate", (ctx) => {
 	`))
 })
 
-bot.on("message", async (ctx) => {
+bot.command("top", (ctx) => {
 	let message = ctx.update.message
 	if (message.chat.id < 0) {
 		let chatId = message.chat.id
 		let chat = getChat(chatId)
+		let top = []
+		iterateObject(chat.members, (memberId, member, memberIndex) => {
+			top.push({
+				firstName: member.firstName,
+				score: member.totalScore
+			})
+
+			Object.assign(member, {
+				answer: null,
+				isPlaying: false,
+				gameScore: 0
+			})
+		})
+		ctx.replyWithMarkdown(trueTrim(`
+			*🔝 Лучшие игроки этого чата за все время:*
+
+			${top.sort((a, b) => b.score - a.score).map((member, index) => `${["🏆","🎖","🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`).join("\n")}
+
+			❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
+			🔄 /game - Еще разок?
+		`))
+	}
+	else {
+		ctx.reply("❌ Эта команда доступна только для чатов.")
+	}
+})
+
+bot.on("message", async (ctx) => {
+	let message = ctx.update.message
+	if (message.chat.id < 0) {
+		let chatId = message.chat.id
 		let fromId = message.from.id
+		let chat = getChat(chatId)
 		if (
-			chat &&
-			chat.isPlaying &&
-			chat.rightAnswer &&
-			[0, undefined].includes(chat.membersAnswers[fromId]) &&
+			chat && //chat exist
+			chat.isPlaying && //game exist
+			(chat.members[fromId] === undefined || chat.members[fromId].answer === null) && //it's a new member or it's member's first answer
+			gameStates && //gameState was created
 			/^-?\d+$/.test(message.text)
 		) {
-			let memberAnswer = Number(message.text)
-			if (memberAnswer <= 0 || memberAnswer >= 120) {
-				return ctx.reply("Ответ вне допустимого диапазона (1 - 120)")
+			let firstName = message.from.first_name
+			let answer = Number(message.text)
+			if (answer <= 0 || answer > 120) {
+				return ctx.reply(
+					"Ответ вне допустимого диапазона (1 - 120)",
+					{
+						reply_to_message_id: ctx.message.message_id,
+					}
+				)
 			}
-			chat.membersAnswers[fromId] = Number(message.text)
+			if (!chat.members[fromId]) { //new member's answer
+				chat.members[fromId] = createMember(firstName)
+			}
+			Object.assign(chat.members[fromId], {
+				isPlaying: true,
+				answer: answer,
+				firstName: firstName
+			})
+			gameStates[chatId].answersOrder.push(fromId)
+
 			db.update(chatId, ch => chat)
-			memberAdd(chatId, fromId, message.from.first_name)
-			ctx.replyWithMarkdown(`📝 *${message.from.first_name}*, твой ответ принят (${memberAnswer}).`)
+
+			telegram.editMessageCaption(
+				chatId,
+				gameStates[chatId].guessMessageId,
+				null,
+				getRoundMessage(chatId, gameStates[chatId].currentRound, gameStates[chatId].currentTime),
+				{
+					parse_mode: "Markdown"
+				}
+			)
 		}
-		else if (message.new_chat_member && message.new_chat_member.id === config.botId) {
+		else if (message.new_chat_member && message.new_chat_member.id === config.botId) { //bot added to new chat
 			ctx.replyWithMarkdown(getGreetMessage(true))
 		}
 	}
