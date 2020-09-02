@@ -142,6 +142,7 @@ const startGame = (ctx, chatId) => {
 			caption: getRoundMessage(chatId, round, 0),
 			parse_mode: "Markdown"
 		})
+		gameState.currentTime = 0
 		gameState.guessMessageId = guessMessage.message_id
 		gameState.currentRound = round
 
@@ -280,27 +281,37 @@ bot.command("top", (ctx) => {
 	if (message.chat.id < 0) {
 		let chatId = message.chat.id
 		let chat = getChat(chatId)
-		let top = []
-		iterateObject(chat.members, (memberId, member, memberIndex) => {
-			top.push({
-				firstName: member.firstName,
-				score: member.totalScore
+		if (chat) {
+			let top = []
+			iterateObject(chat.members, (memberId, member, memberIndex) => {
+				top.push({
+					firstName: member.firstName,
+					score: member.totalScore
+				})
+
+				Object.assign(member, {
+					answer: null,
+					isPlaying: false,
+					gameScore: 0
+				})
 			})
+			if (top.length > 0) {
+				ctx.replyWithMarkdown(trueTrim(`
+					*🔝 Лучшие игроки этого чата за все время:*
 
-			Object.assign(member, {
-				answer: null,
-				isPlaying: false,
-				gameScore: 0
-			})
-		})
-		ctx.replyWithMarkdown(trueTrim(`
-			*🔝 Лучшие игроки этого чата за все время:*
+					${top.sort((a, b) => b.score - a.score).map((member, index) => `${["🏆","🎖","🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`).join("\n")}
 
-			${top.sort((a, b) => b.score - a.score).map((member, index) => `${["🏆","🎖","🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`).join("\n")}
-
-			❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
-			🔄 /game - Еще разок?
-		`))
+					❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
+					🔄 /game - Еще разок?
+				`))
+			}
+			else {
+				ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
+			}
+		}
+		else {
+			ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
+		}
 	}
 	else {
 		ctx.reply("❌ Эта команда доступна только для чатов.")
