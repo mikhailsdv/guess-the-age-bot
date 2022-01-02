@@ -263,13 +263,13 @@ bot.command("stop", ctx => {
 bot.command("donate", ctx => {
 	return ctx.replyWithMarkdown(
 		trueTrim(`
-		Проще всего задонатить здесь: babki.mishasaidov.com
+			Проще всего задонатить здесь: babki.mishasaidov.com
 
-		ЮMoney (Яндекс.Деньги): \`4100117319944149\`
-		QIWI: \`+77002622563\`
-		BTC: \`1MDRDDBURiPEg93epMiryCdGvhEncyAbpy\`
-		Kaspi (Казахстан): \`5169497160435198\`
-	`)
+			ЮMoney (Яндекс.Деньги): \`4100117319944149\`
+			QIWI: \`+77002622563\`
+			BTC: \`1MDRDDBURiPEg93epMiryCdGvhEncyAbpy\`
+			Kaspi (Казахстан): \`5169497160435198\`
+		`)
 	)
 })
 
