@@ -2,7 +2,7 @@ const {Telegraf, Telegram} = require("telegraf")
 const config = require("./config")
 const db = require("./db")
 const fs = require("fs")
-const {arrayRandom, trueTrim, plusminus, pluralize} = require("./functions")
+const {arrayRandom, trueTrim, plusminus, pluralize, bold, escape} = require("./functions")
 const telegram = new Telegram(config.token)
 const bot = new Telegraf(config.token)
 
@@ -95,16 +95,25 @@ const stopGame = (ctx, chatId) => {
 		if (top.length > 0) {
 			ctx.replyWithMarkdown(
 				trueTrim(`
-				*🏁 А вот и победители:*
+					*🏁 А вот и победители:*
 
-				${top
-					.sort((a, b) => b.score - a.score)
-					.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`)
-					.join("\n")}
+					${top
+						.sort((a, b) => b.score - a.score)
+						.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${bold(member.firstName)}: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`)
+						.join("\n")}
 
-				❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
-				🔄 /game - Еще разок?
-			`)
+					❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
+					🔄 /game - Еще разок?
+				`)
+			)
+		} else {
+			ctx.replyWithMarkdown(
+				trueTrim(`
+					*🏁 Ок, завершаю игру.*
+
+					❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
+					🔄 /game - Еще разок?
+				`)
 			)
 		}
 	} else {
@@ -186,7 +195,7 @@ const startGame = (ctx, chatId) => {
 
 						${top
 							.sort((a, b) => b.addScore - a.addScore)
-							.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${plusminus(member.addScore)}`)
+							.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${bold(member.firstName)}: ${plusminus(member.addScore)}`)
 							.join("\n")}
 					`),
 					{
@@ -299,7 +308,7 @@ bot.command("top", ctx => {
 
 					${top
 						.sort((a, b) => b.score - a.score)
-						.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. *${member.firstName}*: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`)
+						.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${bold(member.firstName)}: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`)
 						.join("\n")}
 
 					❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
@@ -314,6 +323,59 @@ bot.command("top", ctx => {
 		}
 	} else {
 		ctx.reply("❌ Эта команда доступна только для чатов.")
+	}
+})
+
+bot.command("chart", ctx => {
+	const fromId = String(ctx.update.message.from.id)
+	const data = db.read()
+	let top = []
+	iterateObject(data, (chatId, chat, chatIndex) => {
+		iterateObject(chat.members, (memberId, member, memberIndex) => {
+			const existingMember = top.find(topItem => topItem.id === memberId)
+			if (existingMember) {
+				if (member.totalScore > existingMember.score) {
+					existingMember.score = member.totalScore
+				}
+			} else {
+				top.push({
+					id: memberId,
+					firstName: member.firstName,
+					score: member.totalScore,
+				})
+			}
+		})
+	})
+
+	top = top.sort((a, b) => b.score - a.score)
+	const topSlice = top.slice(0, 25)
+	let currentUser
+	if (!topSlice.find(item => item.id === fromId)) {
+		let currentUserIndex
+		currentUser = {
+			...top.find((item, index) => {
+				if (item.id === fromId) {
+					currentUserIndex = index
+					return true
+				}
+			}),
+		}
+		currentUser.index = currentUserIndex
+	}
+
+	if (top.length > 0) {
+		ctx.replyWithMarkdown(
+			trueTrim(`
+			*🔝 Глобальный рейтинг игроков:*
+
+			${topSlice.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${fromId === member.id ? "Вы: " : ""}${bold(member.firstName)}: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`).join("\n")}
+			${currentUser ? `...\n🔸 ${currentUser.index + 1}. ${bold(currentUser.firstName)}: ${currentUser.score} ${pluralize(currentUser.score, "очко", "очка", "очков")}\n` : ""}
+			❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
+			🔄 /game - Еще разок?
+		`)
+		)
+	} else {
+		ctx.reply("❌ На данный момент невозможно составить рейтинг.")
 	}
 })
 
