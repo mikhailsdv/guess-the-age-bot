@@ -368,8 +368,8 @@ bot.command("chart", ctx => {
 			trueTrim(`
 			*🔝 Глобальный рейтинг игроков:*
 
-			${topSlice.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${fromId === member.id ? "Вы: " : ""}${bold(member.firstName)}: ${member.score} ${pluralize(numberWithSpaces(member.score), "очко", "очка", "очков")}`).join("\n")}
-			${currentUser ? `...\n🔸 ${currentUser.index + 1}. ${bold(currentUser.firstName)}: ${currentUser.score} ${pluralize(numberWithSpaces(currentUser.score), "очко", "очка", "очков")}\n` : ""}
+			${topSlice.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${fromId === member.id ? "Вы: " : ""}${bold(member.firstName)}: ${numberWithSpaces(member.score)} ${pluralize(member.score, "очко", "очка", "очков")}`).join("\n")}
+			${currentUser ? `...\n🔸 ${currentUser.index + 1}. ${bold(currentUser.firstName)}: ${numberWithSpaces(currentUser.score)} ${pluralize(currentUser.score, "очко", "очка", "очков")}\n` : ""}
 			❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
 			🔄 /game - Еще разок?
 		`)
