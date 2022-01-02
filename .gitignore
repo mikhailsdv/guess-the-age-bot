@@ -1,8 +1,11 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+/photos/*
+!/photos/15_0_0_20170110224312647.jpg.chip.jpg
+!/photos/18_1_0_20170109213109287.jpg.chip.jpg
+!/photos/17_1_3_20170104223349358.jpg.chip.jpg
+!/photos/16_1_0_20170119155149354.jpg.chip.jpg
+!/photos/116_1_3_20170120134744096.jpg.chip.jpg
+!/photos/105_1_0_20170112213021902.jpg.chip.jpg
 
-# dependencies
-/photo
 /node_modules
 /config.js
-/photos
 /db.json
