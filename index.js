@@ -352,15 +352,16 @@ bot.command("chart", ctx => {
 	let currentUser
 	if (!topSlice.find(item => item.id === fromId)) {
 		let currentUserIndex
-		currentUser = {
-			...top.find((item, index) => {
-				if (item.id === fromId) {
-					currentUserIndex = index
-					return true
-				}
-			}),
+		const foundUser = top.find((item, index) => {
+			if (item.id === fromId) {
+				currentUserIndex = index
+				return true
+			}
+		})
+		if (foundUser) {
+			currentUser = {...foundUser}
+			currentUser.index = currentUserIndex
 		}
-		currentUser.index = currentUserIndex
 	}
 
 	if (top.length > 0) {
