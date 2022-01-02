@@ -18,4 +18,5 @@ module.exports = {
 	},
 	escape: str => str.replace(/_/g, "\\_").replace(/\*/g, "\\*").replace(/\[/g, "\\[").replace(/`/g, "\\`"),
 	bold: str => `*${str.replace(/\*+/g, match => `*${match.replace(/(.)/g, "\\$1")}*`)}*`,
+	numberWithSpaces: n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "),
 }

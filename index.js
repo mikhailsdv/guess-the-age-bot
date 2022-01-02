@@ -2,7 +2,7 @@ const {Telegraf, Telegram} = require("telegraf")
 const config = require("./config")
 const db = require("./db")
 const fs = require("fs")
-const {arrayRandom, trueTrim, plusminus, pluralize, bold, escape} = require("./functions")
+const {numberWithSpaces, arrayRandom, trueTrim, plusminus, pluralize, bold} = require("./functions")
 const telegram = new Telegram(config.token)
 const bot = new Telegraf(config.token)
 
@@ -99,7 +99,7 @@ const stopGame = (ctx, chatId) => {
 
 					${top
 						.sort((a, b) => b.score - a.score)
-						.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${bold(member.firstName)}: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`)
+						.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${bold(member.firstName)}: ${numberWithSpaces(member.score)} ${pluralize(member.score, "очко", "очка", "очков")}`)
 						.join("\n")}
 
 					❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
@@ -308,7 +308,7 @@ bot.command("top", ctx => {
 
 					${top
 						.sort((a, b) => b.score - a.score)
-						.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${bold(member.firstName)}: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`)
+						.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${bold(member.firstName)}: ${numberWithSpaces(member.score)} ${pluralize(member.score, "очко", "очка", "очков")}`)
 						.join("\n")}
 
 					❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
@@ -368,8 +368,8 @@ bot.command("chart", ctx => {
 			trueTrim(`
 			*🔝 Глобальный рейтинг игроков:*
 
-			${topSlice.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${fromId === member.id ? "Вы: " : ""}${bold(member.firstName)}: ${member.score} ${pluralize(member.score, "очко", "очка", "очков")}`).join("\n")}
-			${currentUser ? `...\n🔸 ${currentUser.index + 1}. ${bold(currentUser.firstName)}: ${currentUser.score} ${pluralize(currentUser.score, "очко", "очка", "очков")}\n` : ""}
+			${topSlice.map((member, index) => `${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${fromId === member.id ? "Вы: " : ""}${bold(member.firstName)}: ${member.score} ${pluralize(numberWithSpaces(member.score), "очко", "очка", "очков")}`).join("\n")}
+			${currentUser ? `...\n🔸 ${currentUser.index + 1}. ${bold(currentUser.firstName)}: ${currentUser.score} ${pluralize(numberWithSpaces(currentUser.score), "очко", "очка", "очков")}\n` : ""}
 			❤️ Канал автора, где иногда публикуются новые прикольные боты @FilteredInternet.
 			🔄 /game - Еще разок?
 		`)
@@ -389,7 +389,7 @@ bot.on("message", async ctx => {
 			chat && //chat exist
 			chat.isPlaying && //game exist
 			(chat.members[fromId] === undefined || chat.members[fromId].answer === null) && //it's a new member or it's member's first answer
-			gameStates && //gameState was created
+			gameStates[chatId] && //gameState was created
 			/^-?\d+$/.test(message.text)
 		) {
 			let firstName = message.from.first_name
