@@ -23,7 +23,7 @@ const db = {
 			dbjson[key] = r(dbjson[key])
 			db.write(dbjson)
 		}
-	}
+	},
 }
 
 module.exports = db
