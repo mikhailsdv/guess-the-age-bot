@@ -328,7 +328,7 @@ bot.command("game", ctx => {
 		ctx.replyWithMarkdown("*Игра начинается!*")
 		startGame(ctx, chatId)
 	} else {
-		ctx.reply(...getOnlyGroupsMessage(ctx.botInfo.username))
+		ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
@@ -339,7 +339,7 @@ bot.command("stop", ctx => {
 		let chatId = message.chat.id
 		stopGame(ctx, chatId)
 	} else {
-		ctx.reply(...getOnlyGroupsMessage(ctx.botInfo.username))
+		ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
@@ -408,7 +408,7 @@ bot.command("top", ctx => {
 			ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
 		}
 	} else {
-		ctx.reply(...getOnlyGroupsMessage(ctx.botInfo.username))
+		ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
