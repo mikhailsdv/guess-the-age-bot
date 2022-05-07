@@ -18,12 +18,24 @@ const createGameState = chatId => {
 	}
 	return gameStates[chatId]
 }
-const getGreetMessage = isGroup =>
+const getAddToGroupButton = botUsername => ({
+	reply_markup: {
+		inline_keyboard: [
+			[
+				{
+					text: "Добавить бота в группу 👥",
+					url: `https://t.me/${botUsername}?startgroup=add`,
+				},
+			],
+		],
+	},
+})
+const getGreetMessage = ({botUsername, isGroup}) => [
 	trueTrim(`
 	👋 Привет. Я — бот для игры в «угадай возраст» в групповых чатах.
 
 	📋 Правила просты: я кидаю вам фото человека, а ваша задача быстро угадать его возраст. Просто отправьте предполагаемый возраст цифрами в чат и я учту ваш голос. Чем точнее вы отвечаете, тем меньше баллов теряете.
-	${isGroup ? "" : "\n😉 Для начала, добавь меня в чат и вызови /game.\n"}
+	${isGroup ? "" : "\n😉 Для начала, добавь меня в *групповой чат* и вызови /game.\n"}
 	*Команды:*
 	/game - 🕹 Новая игра
 	/stop - 🛑 Остановить игру
@@ -31,9 +43,14 @@ const getGreetMessage = isGroup =>
 	/chart - 🌎 Глобальный рейтинг
 	/donate - 💸 Поддержать проект
 
-	Автор: @mikhailsdv
-	Мой канал: @FilteredInternet
-`)
+	Канал автора: @FilteredInternet ❤️ 
+`),
+	isGroup ? null : getAddToGroupButton(botUsername),
+]
+const getOnlyGroupsMessage = botUsername => [
+	"❌ Эта команда доступна только для *групповых чатов*. Создайте чат с друзьями и добавьте туда бота.",
+	getAddToGroupButton(botUsername),
+]
 const getRandomPerson = () => {
 	let imagePath = "./photos"
 	let fimeName = arrayRandom(fs.readdirSync(imagePath))
@@ -278,7 +295,12 @@ bot.catch((err, ctx) => {
 })
 
 bot.start(async ctx => {
-	ctx.replyWithMarkdown(getGreetMessage(ctx.update.message.chat.id < 0))
+	ctx.replyWithMarkdown(
+		...getGreetMessage({
+			botUsername: ctx.botInfo.username,
+			isGroup: ctx.update.message.chat.id < 0,
+		})
+	)
 })
 
 bot.command("game", ctx => {
@@ -306,7 +328,7 @@ bot.command("game", ctx => {
 		ctx.replyWithMarkdown("*Игра начинается!*")
 		startGame(ctx, chatId)
 	} else {
-		ctx.reply("❌ Эта команда доступна только для чатов.")
+		ctx.reply(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
@@ -317,7 +339,7 @@ bot.command("stop", ctx => {
 		let chatId = message.chat.id
 		stopGame(ctx, chatId)
 	} else {
-		ctx.reply("❌ Эта команда доступна только для чатов.")
+		ctx.reply(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
@@ -386,7 +408,7 @@ bot.command("top", ctx => {
 			ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
 		}
 	} else {
-		ctx.reply("❌ Эта команда доступна только для чатов.")
+		ctx.reply(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
@@ -516,7 +538,7 @@ bot.on("message", async ctx => {
 			)
 		} else if (message.new_chat_member && message.new_chat_member.id === config.botId) {
 			//bot added to new chat
-			ctx.replyWithMarkdown(getGreetMessage(true))
+			ctx.replyWithMarkdown(...getGreetMessage({isGroup: true}))
 		}
 	}
 })
