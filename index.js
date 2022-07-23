@@ -208,15 +208,19 @@ const startGame = (ctx, chatId) => {
 		let time = 1
 		gameState.timeouts.timer = setInterval(async () => {
 			gameState.currentTime = time
-			await telegram.editMessageCaption(
-				ctx.chat.id,
-				guessMessage.message_id,
-				null,
-				getRoundMessage(chatId, round, time),
-				{
-					parse_mode: "Markdown",
-				}
-			)
+			try {
+				await telegram.editMessageCaption(
+					ctx.chat.id,
+					guessMessage.message_id,
+					null,
+					getRoundMessage(chatId, round, time),
+					{
+						parse_mode: "Markdown",
+					}
+				)
+			} catch (err) {
+				console.log(err)
+			}
 			time++
 			if (time >= config.timerSteps + 1) clearInterval(gameState.timeouts.timer)
 		}, config.waitDelay / (config.timerSteps + 1))
