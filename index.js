@@ -88,7 +88,7 @@ const createMember = firstName => {
 const getChat = chatId => {
 	return db.get(chatId)
 }
-const stopGame = (ctx, chatId) => {
+const stopGame = async (ctx, chatId) => {
 	console.log("stopGame")
 	let chat = getChat(chatId)
 	if (chat && chat.isPlaying) {
@@ -115,7 +115,7 @@ const stopGame = (ctx, chatId) => {
 		})
 		db.update(chatId, ch => chat)
 		if (top.length > 0) {
-			ctx.replyWithMarkdown(
+			await ctx.replyWithMarkdown(
 				trueTrim(`
 					*🏁 А вот и победители:*
 
@@ -139,7 +139,7 @@ const stopGame = (ctx, chatId) => {
 				`)
 			)
 		} else {
-			ctx.replyWithMarkdown(
+			await ctx.replyWithMarkdown(
 				trueTrim(`
 					*🏁 Ок, завершаю игру.*
 
@@ -149,7 +149,7 @@ const stopGame = (ctx, chatId) => {
 			)
 		}
 	} else {
-		ctx.reply("❌ Игра не была запущена. Вы можете запутить ее командой /start.")
+		await ctx.reply("❌ Игра не была запущена. Вы можете запутить ее командой /start.")
 	}
 }
 const getRoundMessage = (chatId, round, time) => {
@@ -221,7 +221,7 @@ const startGame = (ctx, chatId) => {
 			if (time >= config.timerSteps + 1) clearInterval(gameState.timeouts.timer)
 		}, config.waitDelay / (config.timerSteps + 1))
 
-		gameState.timeouts.round = setTimeout(() => {
+		gameState.timeouts.round = setTimeout(async () => {
 			let chat = getChat(chatId)
 			let top = []
 			iterateObject(chat.members, (memberId, member, memberIndex) => {
@@ -244,7 +244,7 @@ const startGame = (ctx, chatId) => {
 			db.update(chatId, ch => chat)
 
 			if (!top.every(member => member.answer === null)) {
-				ctx.replyWithMarkdown(
+				await ctx.replyWithMarkdown(
 					trueTrim(`
 						Человеку на этом фото *${rightAnswer} ${pluralize(
 						rightAnswer,
@@ -268,14 +268,14 @@ const startGame = (ctx, chatId) => {
 					}
 				)
 			} else {
-				ctx.reply("🤔 Похоже, вы не играете. Ок, завершаю игру...")
-				stopGame(ctx, chatId)
+				await ctx.reply("🤔 Похоже, вы не играете. Ок, завершаю игру...")
+				await stopGame(ctx, chatId)
 				return
 			}
 
 			if (round === config.rounds - 1) {
-				gameState.timeouts.stopGame = setTimeout(() => {
-					stopGame(ctx, chatId)
+				gameState.timeouts.stopGame = setTimeout(async () => {
+					await stopGame(ctx, chatId)
 				}, 1000)
 			} else {
 				gameState.answersOrder = []
@@ -295,7 +295,7 @@ bot.catch((err, ctx) => {
 })
 
 bot.start(async ctx => {
-	ctx.replyWithMarkdown(
+	await ctx.replyWithMarkdown(
 		...getGreetMessage({
 			botUsername: ctx.botInfo.username,
 			isGroup: ctx.update.message.chat.id < 0,
@@ -303,7 +303,7 @@ bot.start(async ctx => {
 	)
 })
 
-bot.command("game", ctx => {
+bot.command("game", async ctx => {
 	console.log("game")
 	let message = ctx.update.message
 	if (message.chat.id < 0) {
@@ -325,21 +325,21 @@ bot.command("game", ctx => {
 		} else {
 			createChat(chatId)
 		}
-		ctx.replyWithMarkdown("*Игра начинается!*")
+		await ctx.replyWithMarkdown("*Игра начинается!*")
 		startGame(ctx, chatId)
 	} else {
-		ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
+		await ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
-bot.command("stop", ctx => {
+bot.command("stop", async ctx => {
 	console.log("stop")
 	let message = ctx.update.message
 	if (message.chat.id < 0) {
 		let chatId = message.chat.id
-		stopGame(ctx, chatId)
+		await stopGame(ctx, chatId)
 	} else {
-		ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
+		await ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
@@ -357,7 +357,7 @@ bot.command("donate", ctx => {
 	)
 })
 
-bot.command("top", ctx => {
+bot.command("top", async ctx => {
 	console.log("top")
 	let message = ctx.update.message
 	if (message.chat.id < 0) {
@@ -378,7 +378,7 @@ bot.command("top", ctx => {
 				})
 			})
 			if (top.length > 0) {
-				ctx.replyWithMarkdown(
+				await ctx.replyWithMarkdown(
 					trueTrim(`
 					*🔝 Лучшие игроки этого чата за все время:*
 
@@ -402,17 +402,17 @@ bot.command("top", ctx => {
 				`)
 				)
 			} else {
-				ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
+				await ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
 			}
 		} else {
-			ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
+			await ctx.reply("❌ Вы еще не сыграли ни одной игры в этом чате.")
 		}
 	} else {
-		ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
+		await ctx.replyWithMarkdown(...getOnlyGroupsMessage(ctx.botInfo.username))
 	}
 })
 
-bot.command("chart", ctx => {
+bot.command("chart", async ctx => {
 	console.log("chart")
 	const fromId = String(ctx.update.message.from.id)
 	const data = db.read()
@@ -452,7 +452,7 @@ bot.command("chart", ctx => {
 	}
 
 	if (top.length > 0) {
-		ctx.replyWithMarkdown(
+		await ctx.replyWithMarkdown(
 			trueTrim(`
 			*🔝 Глобальный рейтинг игроков:*
 
@@ -486,7 +486,7 @@ bot.command("chart", ctx => {
 		`)
 		)
 	} else {
-		ctx.reply("❌ На данный момент невозможно составить рейтинг.")
+		await ctx.reply("❌ На данный момент невозможно составить рейтинг.")
 	}
 })
 
@@ -538,7 +538,7 @@ bot.on("message", async ctx => {
 			)
 		} else if (message.new_chat_member && message.new_chat_member.id === config.botId) {
 			//bot added to new chat
-			ctx.replyWithMarkdown(...getGreetMessage({isGroup: true}))
+			await ctx.replyWithMarkdown(...getGreetMessage({isGroup: true}))
 		}
 	}
 })
