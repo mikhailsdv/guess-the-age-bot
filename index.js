@@ -186,7 +186,7 @@ const getRoundMessage = (chatId, round, time) => {
 		${"⬛".repeat(time)}${"⬜".repeat(config.timerSteps - time)}
 	`)
 }
-const startGame = (ctx, chatId) => {
+const startGame = async (ctx, chatId) => {
 	console.log("startGame")
 	let gameState = createGameState(chatId)
 	let startRound = async round => {
@@ -208,7 +208,7 @@ const startGame = (ctx, chatId) => {
 		let time = 1
 		gameState.timeouts.timer = setInterval(() => {
 			gameState.currentTime = time
-			telegram.editMessageCaption(
+			await telegram.editMessageCaption(
 				ctx.chat.id,
 				guessMessage.message_id,
 				null,
@@ -523,7 +523,7 @@ bot.on("message", async ctx => {
 
 			db.update(chatId, ch => chat)
 
-			telegram.editMessageCaption(
+			await telegram.editMessageCaption(
 				chatId,
 				gameStates[chatId].guessMessageId,
 				null,
