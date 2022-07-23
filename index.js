@@ -186,7 +186,7 @@ const getRoundMessage = (chatId, round, time) => {
 		${"⬛".repeat(time)}${"⬜".repeat(config.timerSteps - time)}
 	`)
 }
-const startGame = async (ctx, chatId) => {
+const startGame = (ctx, chatId) => {
 	console.log("startGame")
 	let gameState = createGameState(chatId)
 	let startRound = async round => {
@@ -206,7 +206,7 @@ const startGame = async (ctx, chatId) => {
 		gameState.currentRound = round
 
 		let time = 1
-		gameState.timeouts.timer = setInterval(() => {
+		gameState.timeouts.timer = setInterval(async () => {
 			gameState.currentTime = time
 			await telegram.editMessageCaption(
 				ctx.chat.id,
