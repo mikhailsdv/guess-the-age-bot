@@ -226,36 +226,37 @@ const startGame = (ctx, chatId) => {
 		}, config.waitDelay / (config.timerSteps + 1))
 
 		gameState.timeouts.round = setTimeout(async () => {
-			let chat = getChat(chatId)
-			let top = []
-			iterateObject(chat.members, (memberId, member, memberIndex) => {
-				if (member.isPlaying) {
-					let addScore =
-						member.answer === null
-							? 0
-							: rightAnswer - Math.abs(rightAnswer - member.answer)
-					chat.members[memberId].gameScore += addScore
-					chat.members[memberId].totalScore += addScore
-					top.push({
-						firstName: member.firstName,
-						addScore: addScore,
-						answer: member.answer,
-					})
-					member.answer = null
-					db.update(chatId, ch => chat)
-				}
-			})
-			db.update(chatId, ch => chat)
+			try {
+				let chat = getChat(chatId)
+				let top = []
+				iterateObject(chat.members, (memberId, member, memberIndex) => {
+					if (member.isPlaying) {
+						let addScore =
+							member.answer === null
+								? 0
+								: rightAnswer - Math.abs(rightAnswer - member.answer)
+						chat.members[memberId].gameScore += addScore
+						chat.members[memberId].totalScore += addScore
+						top.push({
+							firstName: member.firstName,
+							addScore: addScore,
+							answer: member.answer,
+						})
+						member.answer = null
+						db.update(chatId, ch => chat)
+					}
+				})
+				db.update(chatId, ch => chat)
 
-			if (!top.every(member => member.answer === null)) {
-				await ctx.replyWithMarkdown(
-					trueTrim(`
+				if (!top.every(member => member.answer === null)) {
+					await ctx.replyWithMarkdown(
+						trueTrim(`
 						Человеку на этом фото *${rightAnswer} ${pluralize(
-						rightAnswer,
-						"год",
-						"года",
-						"лет"
-					)}*. Вот, кто был ближе всего:
+							rightAnswer,
+							"год",
+							"года",
+							"лет"
+						)}*. Вот, кто был ближе всего:
 
 						${top
 							.sort((a, b) => b.addScore - a.addScore)
@@ -267,25 +268,28 @@ const startGame = (ctx, chatId) => {
 							)
 							.join("\n")}
 					`),
-					{
-						reply_to_message_id: guessMessage.message_id,
-					}
-				)
-			} else {
-				await ctx.reply("🤔 Похоже, вы не играете. Ок, завершаю игру...")
-				await stopGame(ctx, chatId)
-				return
-			}
-
-			if (round === config.rounds - 1) {
-				gameState.timeouts.stopGame = setTimeout(async () => {
+						{
+							reply_to_message_id: guessMessage.message_id,
+						}
+					)
+				} else {
+					await ctx.reply("🤔 Похоже, вы не играете. Ок, завершаю игру...")
 					await stopGame(ctx, chatId)
-				}, 1000)
-			} else {
-				gameState.answersOrder = []
-				gameState.timeouts.afterRound = setTimeout(() => {
-					startRound(++round)
-				}, 2500)
+					return
+				}
+
+				if (round === config.rounds - 1) {
+					gameState.timeouts.stopGame = setTimeout(async () => {
+						await stopGame(ctx, chatId)
+					}, 1000)
+				} else {
+					gameState.answersOrder = []
+					gameState.timeouts.afterRound = setTimeout(() => {
+						startRound(++round)
+					}, 2500)
+				}
+			} catch (err) {
+				console.log(err)
 			}
 		}, config.waitDelay)
 	}
