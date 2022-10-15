@@ -26,4 +26,13 @@ const db = {
 	},
 }
 
+createChat(id) => {
+	console.log("createChat")
+	const data = {
+		isPlaying: true,
+		members: {},
+	}
+	db.insert(chatId, data)
+}
+
 module.exports = db

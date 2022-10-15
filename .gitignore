@@ -7,5 +7,5 @@
 !/photos/105_1_0_20170112213021902.jpg.chip.jpg
 
 /node_modules
-/config.js
-/db.json
+/.env
+/.idea

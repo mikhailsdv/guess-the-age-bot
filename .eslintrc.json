@@ -1,0 +1,26 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "import/no-anonymous-default-export": "off",
+    "no-irregular-whitespace": "off",
+    "no-mixed-spaces-and-tabs": "off",
+    "no-extra-semi": "off",
+    "prefer-const": "error",
+    "@typescript-eslint/no-var-requires": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": "latest"
+  },
+  "env": {
+    "node": true,
+    "es6": true
+  }
+}
