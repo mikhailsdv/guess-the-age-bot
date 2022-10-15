@@ -2,13 +2,7 @@ const {BOT_TOKEN, REQUEST_TIMEOUT, ROUNDS, ROUND_DURATION, TIMER_STEPS} =
 	process.env
 const path = require("path")
 const fs = require("fs")
-const {
-	InputFile,
-	InlineKeyboard,
-	HttpError,
-	GrammyError,
-	session,
-} = require("grammy")
+const {InputFile} = require("grammy")
 const {
 	trim,
 	bold,
@@ -17,23 +11,24 @@ const {
 	pluralize,
 	revealNumberSign,
 	arrayRandom,
+	findExact,
 } = require("./utils")
 
 const getRoundMessage = async ctx => {
 	const answers = ctx.session.players
-		.filter(member => member.isPlaying && member.answer !== null)
+		.filter(player => player.isPlaying && player.answer !== null)
 		.sort(
 			(a, b) =>
 				ctx.session.answersOrder.indexOf(a.id) -
 				ctx.session.answersOrder.indexOf(b.id)
 		)
 
-	const fileName = arrayRandom(
-		fs.readdirSync(path.resolve(__dirname, "./photos"))
-	)
+	const photosPath = path.resolve(__dirname, "../photos")
+	const fileName = arrayRandom(fs.readdirSync(photosPath))
+	const filePath = path.resolve(photosPath, fileName)
 	ctx.session.rightAnswer = Number(fileName.match(/^(\d+)/)[1])
 
-	return await ctx.replyWithPhoto(InputFile(fileName), {
+	return await ctx.replyWithPhoto(new InputFile(filePath), {
 		caption: trim(`
 			*Раунд ${ctx.session.round}/${ROUNDS}*
 			Сколько, по-вашему, лет этому человеку?
@@ -41,10 +36,10 @@ const getRoundMessage = async ctx => {
 				answers.length > 0
 					? `\n${answers
 							.map(
-								(member, index) =>
+								(player, index) =>
 									`${index + 1}. ${bold(
-										escape(member.firstName)
-									)}: ${escape(member.answer)}`
+										escape(player.firstName)
+									)}: ${escape(player.answer)}`
 							)
 							.join("\n")}\n`
 					: ""
@@ -107,24 +102,24 @@ const onStart = async ctx => {
 				ctx.session.isWaitingForAnswers = false
 
 				const top = []
-				for (const member of ctx.session.members) {
-					if (!member.isPlaying) continue
+				for (const player of ctx.session.players) {
+					if (!player.isPlaying) continue
 					const addScore =
-						member.answer === null
+						player.answer === null
 							? 0
 							: ctx.session.rightAnswer -
-							  Math.abs(ctx.session.rightAnswer - member.answer)
-					member.score += addScore
+							  Math.abs(ctx.session.rightAnswer - player.answer)
+					player.gameScore += addScore
 					top.push({
-						...member,
+						...player,
 						addScore,
 					})
-					member.answer = null
+					player.answer = null
 					//db.update(chatId, ch => chat)
 				}
 				//db.update(chatId, ch => chat)
-
-				if (top.every(member => member.answer === null)) {
+				console.log({top})
+				if (top.every(player => player.answer === null)) {
 					await ctx.reply(
 						"🤔 Похоже, вы не играете. Ок, завершаю игру..."
 					)
@@ -143,13 +138,13 @@ const onStart = async ctx => {
 							${top
 								.sort((a, b) => b.addScore - a.addScore)
 								.map(
-									(member, index) =>
+									(player, index) =>
 										`${["🏆", "🎖", "🏅"][index] || "🔸"} ${
 											index + 1
 										}. ${bold(
-											escape(member.firstName)
+											escape(player.firstName)
 										)}: ${revealNumberSign(
-											member.addScore
+											player.addScore
 										)}`
 								)
 								.join("\n")}
@@ -160,7 +155,7 @@ const onStart = async ctx => {
 					)
 				}
 
-				if (ctx.session.round === ROUNDS) {
+				if (ctx.session.round === Number(ROUNDS)) {
 					ctx.session.timeouts.stopGame = setTimeout(async () => {
 						await onStop(ctx)
 					}, 1000)
@@ -198,14 +193,9 @@ const onStop = async ctx => {
 	ctx.session.isWaitingForAnswers = false
 
 	const top = []
-	for (const member of ctx.session.members) {
-		if (!member.isPlaying) continue
-		top.push({...member})
-		Object.assign(member, {
-			answer: null,
-			isPlaying: false,
-			score: 0,
-		})
+	for (const player of ctx.session.players) {
+		if (!player.isPlaying) continue
+		top.push({...player})
 	}
 
 	//db.update(chatId, ch => chat)
@@ -227,13 +217,13 @@ const onStop = async ctx => {
 			${top
 				.sort((a, b) => b.score - a.score)
 				.map(
-					(member, index) =>
+					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${
 							index + 1
 						}. ${bold(
-							escape(member.firstName)
-						)}: ${numberWithSpaces(member.score)} ${pluralize(
-							member.score,
+							escape(player.firstName)
+						)}: ${numberWithSpaces(player.gameScore)} ${pluralize(
+							player.gameScore,
 							"очко",
 							"очка",
 							"очков"
@@ -248,27 +238,29 @@ const onStop = async ctx => {
 }
 
 const onNewAnswer = async ctx => {
-	const firstName = message.from.first_name
-	const answer = Number(message.text)
+	const answer = Number(ctx.msg.text)
 	if (answer <= 0 || answer > 120) {
 		return ctx.reply("Ответ вне допустимого диапазона (1 - 120)", {
-			reply_to_message_id: ctx.message.message_id,
+			reply_to_message_id: ctx.msg.message_id,
 		})
 	}
-	if (!chat.members[fromId]) {
-		//new member's answer
-		chat.members[fromId] = createMember(firstName)
+	const player = findExact(ctx.session.players, "id", ctx.from.id)
+	if (player) {
+		player.answer = answer
+	} else {
+		ctx.session.players.push({
+			id: ctx.from.id,
+			firstName: ctx.from.first_name,
+			isPlaying: true,
+			answer,
+			gameScore: 0,
+		})
 	}
-	Object.assign(chat.members[fromId], {
-		isPlaying: true,
-		answer: answer,
-		firstName: firstName,
-	})
-	gameStates[chatId].answersOrder.push(fromId)
+	ctx.session.answersOrder.push(ctx.from.id)
 
-	db.update(chatId, ch => chat)
+	//db.update(chatId, ch => chat)
 
-	await telegram.editMessageCaption(
+	/*await ctx.editMessageCaption(
 		chatId,
 		gameStates[chatId].guessMessageId,
 		null,
@@ -280,13 +272,13 @@ const onNewAnswer = async ctx => {
 		{
 			parse_mode: "Markdown",
 		}
-	)
+	)*/
 }
 
 module.exports = {
 	onStart,
 	onStop,
-	onFinish,
+	//onFinish,
 	getRoundMessage,
 	onNewAnswer,
 }

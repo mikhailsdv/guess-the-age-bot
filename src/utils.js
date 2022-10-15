@@ -1,4 +1,4 @@
-const {InlineKeyboard} = require("grammy");
+const {InlineKeyboard} = require("grammy")
 const arrayRandom = arr => {
 	return arr[Math.round(Math.random() * (arr.length - 1))]
 }
@@ -40,7 +40,7 @@ const iterateObject = (obj, f) => {
 	}
 }
 
-const findExact => (arr, field, value) => arr.find(item => item[field] === value)
+const findExact = (arr, field, value) => arr.find(item => item[field] === value)
 
 const getAddToGroupButton = ctx => ({
 	reply_markup: new InlineKeyboard().url(

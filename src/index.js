@@ -45,7 +45,7 @@ bot.api.config.use(parseMode("Markdown"))
 	currentTime: number
 	answersOrder: []
 	isPlaying: false
-	members: {
+	players: {
 		firstName: string
 		isPlaying: boolean
 		answer: string
@@ -98,17 +98,6 @@ const handlers = {
 		),
 }
 
-const createMember = firstName => {
-	console.log("createMember")
-	return {
-		firstName: firstName,
-		isPlaying: true,
-		answer: null,
-		gameScore: 0,
-		totalScore: 0,
-	}
-}
-
 bot.api.config.use((prev, method, payload, signal) => {
 	const controller = new AbortController()
 	if (signal) signal.onabort = controller.abort.bind(controller)
@@ -133,7 +122,7 @@ bot.catch(err => {
 	}
 })
 
-bot.use(session({getSessionKey}))
+bot.use(session({getSessionKey, initial: () => ({})}))
 
 bot.command("start", async ctx => {
 	await handlers.greet(ctx)
@@ -147,21 +136,19 @@ bot.command("game", async ctx => {
 		return await handlers.onlyGroups(ctx)
 	}
 
-	const chatRecord = getChat(ctx.chat.id)
-	if (chatRecord) {
-		if (ctx.session?.isPlaying) {
-			return await ctx.reply(
-				"❌ У вас уже запущена игра. Вы можете ее остановить командой /stop."
-			)
-		} else {
-			ctx.session.isPlaying = true
-			ctx.session.members.forEach(member => (member.gameScore = 0))
-		}
+	//const chatRecord = getChat(ctx.chat.id)
+	//if (chatRecord) {
+	console.log(ctx.session)
+	if (ctx.session?.isPlaying) {
+		return await ctx.reply(
+			"❌ У вас уже запущена игра. Вы можете ее остановить командой /stop."
+		)
 	} else {
-		await createChat(chatId)
+		await onStart(ctx)
 	}
-
-	await onStart(ctx)
+	/*} else {
+		await createChat(chatId)
+	}*/
 })
 
 bot.command("stop", async ctx => {
@@ -182,13 +169,13 @@ bot.command("top", async ctx => {
 		const chat = getChat(chatId)
 		if (chat) {
 			const top = []
-			iterateObject(chat.members, (memberId, member, memberIndex) => {
+			iterateObject(chat.players, (playerId, player, playerIndex) => {
 				top.push({
-					firstName: member.firstName,
-					score: member.totalScore,
+					firstName: player.firstName,
+					score: player.totalScore,
 				})
 
-				Object.assign(member, {
+				Object.assign(player, {
 					answer: null,
 					isPlaying: false,
 					gameScore: 0,
@@ -202,15 +189,15 @@ bot.command("top", async ctx => {
 					${top
 						.sort((a, b) => b.score - a.score)
 						.map(
-							(member, index) =>
+							(player, index) =>
 								`${["🏆", "🎖", "🏅"][index] || "🔸"} ${
 									index + 1
 								}. ${bold(
-									member.firstName
+									player.firstName
 								)}: ${numberWithSpaces(
-									member.score
+									player.score
 								)} ${pluralize(
-									member.score,
+									player.score,
 									"очко",
 									"очка",
 									"очков"
@@ -243,17 +230,17 @@ bot.command("chart", async ctx => {
 	const data = db.read()
 	let top = []
 	iterateObject(data, (chatId, chat, chatIndex) => {
-		iterateObject(chat.members, (memberId, member, memberIndex) => {
-			const existingMember = top.find(topItem => topItem.id === memberId)
-			if (existingMember) {
-				if (member.totalScore > existingMember.score) {
-					existingMember.score = member.totalScore
+		iterateObject(chat.players, (playerId, player, playerIndex) => {
+			const existingplayer = top.find(topItem => topItem.id === playerId)
+			if (existingplayer) {
+				if (player.totalScore > existingplayer.score) {
+					existingplayer.score = player.totalScore
 				}
 			} else {
 				top.push({
-					id: memberId,
-					firstName: member.firstName,
-					score: member.totalScore,
+					id: playerId,
+					firstName: player.firstName,
+					score: player.totalScore,
 				})
 			}
 		})
@@ -283,12 +270,12 @@ bot.command("chart", async ctx => {
 
 			${topSlice
 				.map(
-					(member, index) =>
+					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${
-							fromId === member.id ? "Вы: " : ""
-						}${bold(member.firstName)}: ${numberWithSpaces(
-							member.score
-						)} ${pluralize(member.score, "очко", "очка", "очков")}`
+							fromId === player.id ? "Вы: " : ""
+						}${bold(player.firstName)}: ${numberWithSpaces(
+							player.score
+						)} ${pluralize(player.score, "очко", "очка", "очков")}`
 				)
 				.join("\n")}
 			${
