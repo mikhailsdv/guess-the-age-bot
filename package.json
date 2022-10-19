@@ -5,9 +5,9 @@
   "main": "index.js",
   "dependencies": {
     "@grammyjs/parse-mode": "^1.5.0",
-    "@grammyjs/storage-mongodb": "^2.0.0",
     "dotenv": "^16.0.3",
-    "grammy": "^1.11.2"
+    "grammy": "^1.11.2",
+    "mongoose": "^6.6.5"
   },
   "devDependencies": {
     "@types/node": "^18.8.5",

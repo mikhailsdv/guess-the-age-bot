@@ -20,16 +20,6 @@ const pluralize = (n, singular, plural, accusative) => {
 	return accusative
 }
 
-const escape = str =>
-	str
-		.replace(/_/g, "\\_")
-		.replace(/\*/g, "\\*")
-		.replace(/\[/g, "\\[")
-		.replace(/`/g, "\\`")
-
-const bold = str =>
-	`*${str.replace(/\*+/g, match => `*${match.replace(/(.)/g, "\\$1")}*`)}*`
-
 const numberWithSpaces = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ")
 
 const iterateObject = (obj, f) => {
@@ -61,8 +51,6 @@ module.exports = {
 	revealNumberSign,
 	trim,
 	pluralize,
-	escape,
-	bold,
 	numberWithSpaces,
 	iterateObject,
 	findExact,
