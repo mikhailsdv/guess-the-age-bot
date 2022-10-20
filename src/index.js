@@ -618,4 +618,4 @@ bot.on("message", async ctx => {
 	}
 })
 
-bot.start({dropPendingUpdates: true})
+bot.start({drop_pending_updates: true})
