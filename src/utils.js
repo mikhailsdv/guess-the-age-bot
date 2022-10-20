@@ -1,4 +1,5 @@
 const {InlineKeyboard} = require("grammy")
+
 const arrayRandom = arr => {
 	return arr[Math.round(Math.random() * (arr.length - 1))]
 }
@@ -46,6 +47,8 @@ const getSessionKey = ctx => {
 
 const isGroupChat = ctx => Boolean(ctx?.chat?.id < 0)
 
+const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
+
 module.exports = {
 	arrayRandom,
 	revealNumberSign,
@@ -57,4 +60,5 @@ module.exports = {
 	getAddToGroupButton,
 	getSessionKey,
 	isGroupChat,
+	wait,
 }

@@ -26,6 +26,7 @@ const {
 	getAddToGroupButton,
 	getSessionKey,
 	isGroupChat,
+	wait,
 } = require("./utils")
 const {bold, $mention} = require("./formatter")
 const {
@@ -281,6 +282,7 @@ bot.command("game", async ctx => {
 							parse_mode: "HTML",
 						}
 					)
+					await wait(1200)
 				}
 
 				ctx.session.isWaitingForAnswers = false
@@ -387,7 +389,7 @@ bot.command("game", async ctx => {
 									🔄 /game - Еще разок?
 								`)
 						)
-					}, 1200)
+					}, 1500)
 				} else {
 					ctx.session.answersOrder = []
 					ctx.session.timeouts.afterRound = setTimeout(async () => {
