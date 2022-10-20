@@ -274,6 +274,7 @@ bot.command("game", async ctx => {
 			try {
 				const lastRoundMessage = getRoundMessageText(ctx)
 				if (lastRoundMessage !== prevRoundMessage) {
+					await wait(500)
 					await bot.api.editMessageCaption(
 						ctx.chat.id,
 						guessMessage.message_id,
@@ -282,7 +283,7 @@ bot.command("game", async ctx => {
 							parse_mode: "HTML",
 						}
 					)
-					await wait(1200)
+					await wait(1500)
 				}
 
 				ctx.session.isWaitingForAnswers = false
@@ -389,7 +390,7 @@ bot.command("game", async ctx => {
 									🔄 /game - Еще разок?
 								`)
 						)
-					}, 1500)
+					}, 1700)
 				} else {
 					ctx.session.answersOrder = []
 					ctx.session.timeouts.afterRound = setTimeout(async () => {
