@@ -308,6 +308,7 @@ bot.command("game", async ctx => {
 						})
 					}
 					if (top.every(player => player.answer === null)) {
+						console.log("Dead chat")
 						await ctx.reply(
 							trim(`
 							😴 Похоже, вы не играете. Ок, завершаю игру...
@@ -357,6 +358,7 @@ bot.command("game", async ctx => {
 					}
 
 					if (ctx.session.round === Number(ROUNDS)) {
+						console.log("Finish game")
 						ctx.session.timeouts.stopGame = setTimeout(async () => {
 							const top = []
 							for (const player of ctx.session.players) {
@@ -426,6 +428,7 @@ bot.command("stop", async ctx => {
 		)
 	}
 
+	console.log("Stop game")
 	await destroyGame(ctx)
 	await ctx.reply(
 		trim(`
