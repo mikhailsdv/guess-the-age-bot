@@ -16,6 +16,7 @@ const {
 	session,
 } = require("grammy")
 const {hydrateReply, parseMode} = require("@grammyjs/parse-mode")
+const {run} = require("@grammyjs/runner")
 const {
 	numberWithSpaces,
 	arrayRandom,
@@ -43,6 +44,8 @@ const {
 const bot = new Bot(BOT_TOKEN)
 bot.use(hydrateReply)
 bot.api.config.use(parseMode("HTML"))
+
+const waitStep = 1500
 
 /*interface GameState {
 	timeouts: object
@@ -231,7 +234,7 @@ bot.command("game", async ctx => {
 
 	await ctx.reply(bold("Игра начинается!"))
 
-	const startRound = async () => {
+	ctx.session.timeouts.beforeGame = setTimeout(async function startRound() {
 		const photosPath = path.resolve(__dirname, "../photos")
 		const fileName = arrayRandom(fs.readdirSync(photosPath))
 		const filePath = path.resolve(photosPath, fileName)
@@ -246,7 +249,7 @@ bot.command("game", async ctx => {
 		ctx.session.isWaitingForAnswers = true
 
 		let prevRoundMessage = null
-		const updateTimeDelay = ROUND_DURATION / (TIMER_STEPS + 1)
+		const updateTimeDelay = ROUND_DURATION / TIMER_STEPS
 		ctx.session.timeouts.timer = setTimeout(async function updateTime() {
 			ctx.session.time++
 			prevRoundMessage = getRoundMessageText(ctx)
@@ -263,49 +266,50 @@ bot.command("game", async ctx => {
 				console.log(err)
 			}
 			if (ctx.session.time < TIMER_STEPS) {
+				//update timer
 				ctx.session.timeouts.timer = setTimeout(
 					updateTime,
 					updateTimeDelay
 				)
-			}
-		}, updateTimeDelay)
+			} else {
+				//finishing round
+				try {
+					await wait(updateTimeDelay)
+					const lastRoundMessage = getRoundMessageText(ctx)
+					if (lastRoundMessage !== prevRoundMessage) {
+						await bot.api.editMessageCaption(
+							ctx.chat.id,
+							guessMessage.message_id,
+							{
+								caption: lastRoundMessage,
+								parse_mode: "HTML",
+							}
+						)
+						await wait(waitStep)
+					}
 
-		ctx.session.timeouts.round = setTimeout(async () => {
-			try {
-				const lastRoundMessage = getRoundMessageText(ctx)
-				if (lastRoundMessage !== prevRoundMessage) {
-					await wait(500)
-					await bot.api.editMessageCaption(
-						ctx.chat.id,
-						guessMessage.message_id,
-						{
-							caption: lastRoundMessage,
-							parse_mode: "HTML",
-						}
-					)
-					await wait(1500)
-				}
+					ctx.session.isWaitingForAnswers = false
+					ctx.session.time = 0
 
-				ctx.session.isWaitingForAnswers = false
-				ctx.session.time = 0
-
-				const top = []
-				for (const player of ctx.session.players) {
-					if (!player.isPlaying) continue
-					const addScore =
-						player.answer === null
-							? 0
-							: ctx.session.rightAnswer -
-							  Math.abs(ctx.session.rightAnswer - player.answer)
-					player.gameScore += addScore
-					top.push({
-						...player,
-						addScore,
-					})
-				}
-				if (top.every(player => player.answer === null)) {
-					await ctx.reply(
-						trim(`
+					const top = []
+					for (const player of ctx.session.players) {
+						if (!player.isPlaying) continue
+						const addScore =
+							player.answer === null
+								? 0
+								: ctx.session.rightAnswer -
+								  Math.abs(
+										ctx.session.rightAnswer - player.answer
+								  )
+						player.gameScore += addScore
+						top.push({
+							...player,
+							addScore,
+						})
+					}
+					if (top.every(player => player.answer === null)) {
+						await ctx.reply(
+							trim(`
 							😴 Похоже, вы не играете. Ок, завершаю игру...
 							
 							Напоминаю, что вы должны успеть написать возраст цифрами ${bold(
@@ -313,23 +317,23 @@ bot.command("game", async ctx => {
 							)} того, как загорится красный сигнал.
 							🔄 /game - Еще разок?
 						`)
-					)
-					await destroyGame(ctx)
-					return
-				} else {
-					ctx.session.players.forEach(
-						player => (player.answer = null)
-					)
-					await ctx.reply(
-						trim(`
+						)
+						await destroyGame(ctx)
+						return
+					} else {
+						ctx.session.players.forEach(
+							player => (player.answer = null)
+						)
+						await ctx.reply(
+							trim(`
 								Человеку на этом фото ${bold(ctx.session.rightAnswer)} ${bold(
-							pluralize(
-								ctx.session.rightAnswer,
-								"год",
-								"года",
-								"лет"
-							)
-						)}. Вот, кто был ближе всего:
+								pluralize(
+									ctx.session.rightAnswer,
+									"год",
+									"года",
+									"лет"
+								)
+							)}. Вот, кто был ближе всего:
 			
 								${top
 									.sort((a, b) => b.addScore - a.addScore)
@@ -346,23 +350,23 @@ bot.command("game", async ctx => {
 									)
 									.join("\n")}
 							`),
-						{
-							reply_to_message_id: ctx.session.guessMessageId,
-						}
-					)
-				}
+							{
+								reply_to_message_id: ctx.session.guessMessageId,
+							}
+						)
+					}
 
-				if (ctx.session.round === Number(ROUNDS)) {
-					ctx.session.timeouts.stopGame = setTimeout(async () => {
-						const top = []
-						for (const player of ctx.session.players) {
-							if (!player.isPlaying) continue
-							top.push({...player})
-						}
-						await destroyGame(ctx)
+					if (ctx.session.round === Number(ROUNDS)) {
+						ctx.session.timeouts.stopGame = setTimeout(async () => {
+							const top = []
+							for (const player of ctx.session.players) {
+								if (!player.isPlaying) continue
+								top.push({...player})
+							}
+							await destroyGame(ctx)
 
-						await ctx.reply(
-							trim(`
+							await ctx.reply(
+								trim(`
 									${bold("🏁 А вот и победители:")}
 							
 									${top
@@ -389,24 +393,24 @@ bot.command("game", async ctx => {
 									Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
 									🔄 /game - Еще разок?
 								`)
+							)
+						}, waitStep)
+					} else {
+						ctx.session.answersOrder = []
+						ctx.session.timeouts.afterRound = setTimeout(
+							async () => {
+								ctx.session.round++
+								await startRound()
+							},
+							waitStep * 2
 						)
-					}, 1700)
-				} else {
-					ctx.session.answersOrder = []
-					ctx.session.timeouts.afterRound = setTimeout(async () => {
-						ctx.session.round++
-						await startRound()
-					}, 2600)
+					}
+				} catch (err) {
+					console.log(err)
 				}
-			} catch (err) {
-				console.log(err)
 			}
-		}, ROUND_DURATION)
-	}
-
-	ctx.session.timeouts.beforeGame = setTimeout(async () => {
-		await startRound()
-	}, 1000)
+		}, updateTimeDelay)
+	}, waitStep)
 })
 
 bot.command("stop", async ctx => {
@@ -620,5 +624,7 @@ bot.on("message", async ctx => {
 		)*/
 	}
 })
-
-bot.start({drop_pending_updates: true})
+;(async () => {
+	await bot.api.deleteWebhook({drop_pending_updates: true})
+	run(bot)
+})()

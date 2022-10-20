@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "@grammyjs/parse-mode": "^1.5.0",
+    "@grammyjs/runner": "^1.0.4",
     "dotenv": "^16.0.3",
     "grammy": "^1.11.2",
     "mongoose": "^6.6.5"
