@@ -28,6 +28,8 @@ const {
 	getSessionKey,
 	isGroupChat,
 	wait,
+	parseCallbackData,
+	getChangePhotoButton,
 } = require("./utils")
 const {bold, $mention} = require("./formatter")
 const {
@@ -162,6 +164,12 @@ const handlers = {
 						),
 				  }
 		),
+	change: ctx => {
+		if (ctx.session?.isPlaying) {
+			ctx.session.changePhoto = true
+			ctx.session.isWaitingForAnswers = false
+		}
+	},
 }
 
 bot.api.config.use((prev, method, payload, signal) => {
@@ -219,6 +227,7 @@ bot.command("game", async ctx => {
 		guessMessageId: null,
 		round: 1,
 		time: 0,
+		changePhoto: false,
 		answersOrder: [],
 		isPlaying: true,
 		isWaitingForAnswers: false,
@@ -235,14 +244,21 @@ bot.command("game", async ctx => {
 	await ctx.reply(bold("Игра начинается!"))
 
 	ctx.session.timeouts.beforeGame = setTimeout(async function startRound() {
+		/*const photosPath = path.resolve(__dirname, "../photos")
+		const fileName = arrayRandom(fs.readdirSync(photosPath))
+		const filePath = path.resolve(photosPath, fileName)
+		ctx.session.rightAnswer = Number(fileName.match(/^(\d+)/)[1])*/
+
 		const photosPath = path.resolve(__dirname, "../photos")
 		const fileName = arrayRandom(fs.readdirSync(photosPath))
 		const filePath = path.resolve(photosPath, fileName)
-		ctx.session.rightAnswer = Number(fileName.match(/^(\d+)/)[1])
+		const match = fileName.match(/(\d+)-\d+-\d+_(\d+)\.jpg$/)
+		ctx.session.rightAnswer = Number(match[2]) - Number(match[1])
 
 		const guessMessage = await ctx.replyWithPhoto(new InputFile(filePath), {
 			caption: getRoundMessageText(ctx),
 			parse_mode: "HTML",
+			...getChangePhotoButton(ctx),
 		})
 
 		ctx.session.guessMessageId = guessMessage.message_id
@@ -251,6 +267,31 @@ bot.command("game", async ctx => {
 		let prevRoundMessage = null
 		const updateTimeDelay = ROUND_DURATION / TIMER_STEPS
 		ctx.session.timeouts.timer = setTimeout(async function updateTime() {
+			if (ctx.session.changePhoto) {
+				await bot.api.deleteMessage(
+					ctx.chat.id,
+					guessMessage.message_id
+				)
+				ctx.session.changePhoto = false
+				ctx.session.time = 0
+				ctx.session.answersOrder = []
+				for (const player of ctx.session.players) {
+					player.answer = null
+				}
+				fs.copyFile(
+					filePath,
+					path.resolve(__dirname, "../changed", fileName),
+					err => {
+						if (err) {
+							console.error(err)
+						}
+					}
+				)
+				await wait(waitStep)
+				await startRound()
+				return
+			}
+
 			ctx.session.time++
 			prevRoundMessage = getRoundMessageText(ctx)
 			try {
@@ -260,6 +301,9 @@ bot.command("game", async ctx => {
 					{
 						caption: prevRoundMessage,
 						parse_mode: "HTML",
+						...(ctx.session.time <= 1
+							? getChangePhotoButton(ctx)
+							: {}),
 					}
 				)
 			} catch (err) {
@@ -276,6 +320,8 @@ bot.command("game", async ctx => {
 				try {
 					await wait(updateTimeDelay)
 					const lastRoundMessage = getRoundMessageText(ctx)
+					ctx.session.isWaitingForAnswers = false
+					ctx.session.time = 0
 					if (lastRoundMessage !== prevRoundMessage) {
 						await bot.api.editMessageCaption(
 							ctx.chat.id,
@@ -287,9 +333,6 @@ bot.command("game", async ctx => {
 						)
 						await wait(waitStep)
 					}
-
-					ctx.session.isWaitingForAnswers = false
-					ctx.session.time = 0
 
 					const top = []
 					for (const player of ctx.session.players) {
@@ -625,6 +668,24 @@ bot.on("message", async ctx => {
 				parse_mode: "HTML",
 			}
 		)*/
+	}
+})
+
+bot.on("callback_query", async ctx => {
+	const {command, data} = parseCallbackData(ctx.callbackQuery.data)
+	console.log("Button pressed:", command, data)
+	if (handlers[command]) {
+		const answerCallbackQuery = await handlers[command](ctx)
+		if (answerCallbackQuery) {
+			await ctx.answerCallbackQuery({
+				text: answerCallbackQuery,
+				show_alert: true,
+			})
+		} else {
+			await ctx.answerCallbackQuery()
+		}
+	} else {
+		await ctx.answerCallbackQuery("❌ Команда не найдена или была удалена")
 	}
 })
 ;(async () => {

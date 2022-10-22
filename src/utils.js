@@ -49,6 +49,23 @@ const isGroupChat = ctx => Boolean(ctx?.chat?.id < 0)
 
 const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
 
+const buildCallbackData = (...theArgs) => theArgs.join(",")
+
+const parseCallbackData = str => {
+	const split = str.split(",")
+	return {
+		command: split[0],
+		data: split.slice(1),
+	}
+}
+
+const getChangePhotoButton = ctx => ({
+	reply_markup: new InlineKeyboard().text(
+		"🔁 Сменить фото",
+		buildCallbackData("change", ctx.chat.id)
+	),
+})
+
 module.exports = {
 	arrayRandom,
 	revealNumberSign,
@@ -58,7 +75,10 @@ module.exports = {
 	iterateObject,
 	findExact,
 	getAddToGroupButton,
+	getChangePhotoButton,
 	getSessionKey,
 	isGroupChat,
 	wait,
+	buildCallbackData,
+	parseCallbackData,
 }
