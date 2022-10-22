@@ -144,7 +144,9 @@ const handlers = {
 			trim(`
 				👋 Привет. Я — бот для игры в «угадай возраст» в групповых чатах.
 			
-				📋 Правила просты: я кидаю вам фото человека, а ваша задача быстро угадать его возраст. Просто отправьте предполагаемый возраст цифрами в чат и я учту ваш ответ. Чем точнее вы отвечаете, тем меньше баллов теряете.
+				📋 Правила просты: я кидаю вам фото человека, а ваша задача ${bold(
+					"быстро"
+				)} угадать его возраст. Просто отправьте предполагаемый возраст цифрами в чат и я учту ваш ответ. У вас примерно 8 секунд на ответ, так что не зевайте. Чем точнее вы отвечаете, тем меньше баллов теряете.
 				${
 					isGroupChat(ctx)
 						? ""
@@ -250,6 +252,7 @@ bot.command("game", async ctx => {
 		isPlaying: true,
 		isWaitingForAnswers: false,
 		players: [],
+		photosHistory: [],
 	})
 
 	const _isChatExists = await isChatExists({chat_id: ctx.chat.id})
@@ -268,10 +271,14 @@ bot.command("game", async ctx => {
 		ctx.session.rightAnswer = Number(fileName.match(/^(\d+)/)[1])*/
 		try {
 			const photosPath = path.resolve(__dirname, "../photos")
-			const fileName = arrayRandom(fs.readdirSync(photosPath))
+			let fileName
+			do {
+				fileName = arrayRandom(fs.readdirSync(photosPath))
+			} while (ctx.session.photosHistory.includes(fileName))
 			const filePath = path.resolve(photosPath, fileName)
 			const match = fileName.match(/(\d+)-\d+-\d+_(\d+)\.jpg$/)
 			ctx.session.rightAnswer = Number(match[2]) - Number(match[1])
+			ctx.session.photosHistory.push(fileName)
 
 			const guessMessage = await ctx.replyWithPhoto(
 				new InputFile(filePath),
@@ -290,10 +297,6 @@ bot.command("game", async ctx => {
 			ctx.session.timeouts.timer = setTimeout(
 				async function updateTime() {
 					if (ctx.session.changePhoto) {
-						/*await bot.api.deleteMessage(
-						ctx.chat.id,
-						guessMessage.message_id
-					)*/
 						await bot.api.editMessageCaption(
 							ctx.chat.id,
 							guessMessage.message_id,
@@ -305,6 +308,7 @@ bot.command("game", async ctx => {
 								parse_mode: "HTML",
 							}
 						)
+						ctx.session.photosHistory.pop()
 						ctx.session.changePhoto = false
 						ctx.session.time = 0
 						ctx.session.answersOrder = []
@@ -390,12 +394,13 @@ bot.command("game", async ctx => {
 									trim(`
 								😴 Похоже, вы не играете. Ок, завершаю игру...
 								
-								Напоминаю, что вы должны успеть написать возраст цифрами ${bold(
+								⚠️ Напоминаю, что вы должны успеть написать возраст цифрами ${bold(
 									"до"
-								)} того, как загорится красный сигнал.
+								)} того, как загорится красный сигнал 🔴
 								
 								${footerText}
-							`)
+							`),
+									{disable_web_page_preview: true}
 								)
 								await destroyGame(ctx)
 								return
@@ -451,35 +456,43 @@ bot.command("game", async ctx => {
 
 										await ctx.reply(
 											trim(`
-										${bold("🏁 А вот и победители:")}
-								
-										${top
-											.sort(
-												(a, b) =>
-													b.gameScore - a.gameScore
-											)
-											.map(
-												(player, index) =>
-													`${
-														["🏆", "🎖", "🏅"][
-															index
-														] || "🔸"
-													} ${index + 1}. ${$mention(
-														bold(player.firstName),
-														player.id
-													)}: ${numberWithSpaces(
-														player.gameScore
-													)} ${pluralize(
-														player.gameScore,
-														"балл",
-														"балла",
-														"баллов"
-													)}`
-											)
-											.join("\n")}
-								
-											${footerText}
-									`)
+												${bold("🏁 А вот и победители:")}
+										
+												${top
+													.sort(
+														(a, b) =>
+															b.gameScore -
+															a.gameScore
+													)
+													.map(
+														(player, index) =>
+															`${
+																[
+																	"🏆",
+																	"🎖",
+																	"🏅",
+																][index] || "🔸"
+															} ${
+																index + 1
+															}. ${$mention(
+																bold(
+																	player.firstName
+																),
+																player.id
+															)}: ${numberWithSpaces(
+																player.gameScore
+															)} ${pluralize(
+																player.gameScore,
+																"балл",
+																"балла",
+																"баллов"
+															)}`
+													)
+													.join("\n")}
+										
+												${footerText}
+											`),
+											{disable_web_page_preview: true}
 										)
 									},
 									waitStep
@@ -534,7 +547,8 @@ bot.command("stop", async ctx => {
 				${bold("🏁 Ок, завершаю игру.")}
 							
 				${footerText}
-			`)
+			`),
+		{disable_web_page_preview: true}
 	)
 })
 
@@ -581,7 +595,8 @@ bot.command("top", async ctx => {
 				.join("\n")}
 							
 			${footerText}
-		`)
+		`),
+		{disable_web_page_preview: true}
 	)
 })
 
@@ -676,7 +691,8 @@ bot.command("chart", async ctx => {
 					: ""
 			}
 			${footerText}
-		`)
+		`),
+		{disable_web_page_preview: true}
 	)
 })
 
