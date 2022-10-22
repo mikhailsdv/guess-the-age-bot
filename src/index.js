@@ -31,7 +31,7 @@ const {
 	parseCallbackData,
 	getChangePhotoButton,
 } = require("./utils")
-const {bold, $mention} = require("./formatter")
+const {bold, $mention, link} = require("./formatter")
 const {
 	createChat,
 	savePlayer,
@@ -128,7 +128,11 @@ const destroyGame = async ctx => {
 
 const footerText = trim(`
 	Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
-				
+	Также вступайте в ${link(
+		"общую игровую комнату",
+		"https://t.me/+NXkIxFd5IfpjMDQy"
+	)} 🔥
+
 	/top - 🔝 Рейтинг игроков чата
 	/chart - 🌎 Глобальный рейтинг
 	/game - 🕹 Новая игра
@@ -153,7 +157,11 @@ const handlers = {
 				/stop - 🛑 Остановить игру
 				/top - 🔝 Рейтинг игроков чата
 				/chart - 🌎 Глобальный рейтинг
-			
+				
+				Также вступайте в ${link(
+					"общую игровую комнату",
+					"https://t.me/+NXkIxFd5IfpjMDQy"
+				)} 🔥
 				Канал автора: @FilteredInternet ❤️ 
 			`),
 			isGroupChat(ctx) ? null : getAddToGroupButton(ctx)
@@ -708,4 +716,5 @@ bot.on("callback_query", async ctx => {
 ;(async () => {
 	await bot.api.deleteWebhook({drop_pending_updates: true})
 	run(bot)
+	console.log("Bot started")
 })()
