@@ -454,7 +454,10 @@ bot.command("game", async ctx => {
 										${bold("🏁 А вот и победители:")}
 								
 										${top
-											.sort((a, b) => b.score - a.score)
+											.sort(
+												(a, b) =>
+													b.gameScore - a.gameScore
+											)
 											.map(
 												(player, index) =>
 													`${
