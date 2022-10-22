@@ -266,186 +266,156 @@ bot.command("game", async ctx => {
 		const fileName = arrayRandom(fs.readdirSync(photosPath))
 		const filePath = path.resolve(photosPath, fileName)
 		ctx.session.rightAnswer = Number(fileName.match(/^(\d+)/)[1])*/
+		try {
+			const photosPath = path.resolve(__dirname, "../photos")
+			const fileName = arrayRandom(fs.readdirSync(photosPath))
+			const filePath = path.resolve(photosPath, fileName)
+			const match = fileName.match(/(\d+)-\d+-\d+_(\d+)\.jpg$/)
+			ctx.session.rightAnswer = Number(match[2]) - Number(match[1])
 
-		const photosPath = path.resolve(__dirname, "../photos")
-		const fileName = arrayRandom(fs.readdirSync(photosPath))
-		const filePath = path.resolve(photosPath, fileName)
-		const match = fileName.match(/(\d+)-\d+-\d+_(\d+)\.jpg$/)
-		ctx.session.rightAnswer = Number(match[2]) - Number(match[1])
-
-		const guessMessage = await ctx.replyWithPhoto(new InputFile(filePath), {
-			caption: getRoundMessageText(ctx),
-			parse_mode: "HTML",
-			...getChangePhotoButton(ctx),
-		})
-
-		ctx.session.guessMessageId = guessMessage.message_id
-		ctx.session.isWaitingForAnswers = true
-
-		let prevRoundMessage = null
-		const updateTimeDelay = ROUND_DURATION / TIMER_STEPS
-		ctx.session.timeouts.timer = setTimeout(async function updateTime() {
-			if (ctx.session.changePhoto) {
-				/*await bot.api.deleteMessage(
-					ctx.chat.id,
-					guessMessage.message_id
-				)*/
-				await bot.api.editMessageCaption(
-					ctx.chat.id,
-					guessMessage.message_id,
-					{
-						caption: `🔁 Ок, меняю фото по просьбе ${$mention(
-							bold(ctx.session.changePhoto.first_name),
-							ctx.session.changePhoto.id
-						)}...`,
-						parse_mode: "HTML",
-					}
-				)
-				ctx.session.changePhoto = false
-				ctx.session.time = 0
-				ctx.session.answersOrder = []
-				for (const player of ctx.session.players) {
-					player.answer = null
+			const guessMessage = await ctx.replyWithPhoto(
+				new InputFile(filePath),
+				{
+					caption: getRoundMessageText(ctx),
+					parse_mode: "HTML",
+					...getChangePhotoButton(ctx),
 				}
-				fs.copyFile(
-					filePath,
-					path.resolve(__dirname, "../changed", fileName),
-					err => {
-						if (err) {
-							console.error(err)
-						}
-					}
-				)
-				await wait(waitStep)
-				await startRound()
-				return
-			}
+			)
 
-			ctx.session.time++
-			prevRoundMessage = getRoundMessageText(ctx)
-			try {
-				await bot.api.editMessageCaption(
-					ctx.chat.id,
-					guessMessage.message_id,
-					{
-						caption: prevRoundMessage,
-						parse_mode: "HTML",
-						...(ctx.session.time <= 1
-							? getChangePhotoButton(ctx)
-							: {}),
-					}
-				)
-			} catch (err) {
-				console.log(err)
-			}
-			if (ctx.session.time < TIMER_STEPS) {
-				//update timer
-				ctx.session.timeouts.timer = setTimeout(
-					updateTime,
-					updateTimeDelay
-				)
-			} else {
-				//finishing round
-				try {
-					await wait(updateTimeDelay)
-					const lastRoundMessage = getRoundMessageText(ctx)
-					ctx.session.isWaitingForAnswers = false
-					ctx.session.time = 0
-					if (lastRoundMessage !== prevRoundMessage) {
+			ctx.session.guessMessageId = guessMessage.message_id
+			ctx.session.isWaitingForAnswers = true
+
+			let prevRoundMessage = null
+			const updateTimeDelay = ROUND_DURATION / TIMER_STEPS
+			ctx.session.timeouts.timer = setTimeout(
+				async function updateTime() {
+					if (ctx.session.changePhoto) {
+						/*await bot.api.deleteMessage(
+						ctx.chat.id,
+						guessMessage.message_id
+					)*/
 						await bot.api.editMessageCaption(
 							ctx.chat.id,
 							guessMessage.message_id,
 							{
-								caption: lastRoundMessage,
+								caption: `🔁 Ок, меняю фото по просьбе ${$mention(
+									bold(ctx.session.changePhoto.first_name),
+									ctx.session.changePhoto.id
+								)}...`,
 								parse_mode: "HTML",
 							}
 						)
-						await wait(waitStep)
-					}
-
-					const top = []
-					for (const player of ctx.session.players) {
-						if (!player.isPlaying) continue
-						const addScore =
-							player.answer === null
-								? 0
-								: ctx.session.rightAnswer -
-								  Math.abs(
-										ctx.session.rightAnswer - player.answer
-								  )
-						player.gameScore += addScore
-						top.push({
-							...player,
-							addScore,
-						})
-					}
-					if (top.every(player => player.answer === null)) {
-						console.log("Dead chat")
-						await ctx.reply(
-							trim(`
-							😴 Похоже, вы не играете. Ок, завершаю игру...
-							
-							Напоминаю, что вы должны успеть написать возраст цифрами ${bold(
-								"до"
-							)} того, как загорится красный сигнал.
-							
-							${footerText}
-						`)
-						)
-						await destroyGame(ctx)
-						return
-					} else {
-						ctx.session.players.forEach(
-							player => (player.answer = null)
-						)
-						await ctx.reply(
-							trim(`
-								Человеку на этом фото ${bold(ctx.session.rightAnswer)} ${bold(
-								pluralize(
-									ctx.session.rightAnswer,
-									"год",
-									"года",
-									"лет"
-								)
-							)}. Вот, кто был ближе всего:
-			
-								${top
-									.sort((a, b) => b.addScore - a.addScore)
-									.map(
-										(player, index) =>
-											`${
-												["🏆", "🎖", "🏅"][index] || "🔸"
-											} ${index + 1}. ${$mention(
-												bold(player.firstName),
-												player.id
-											)}: ${revealNumberSign(
-												player.addScore
-											)}`
-									)
-									.join("\n")}
-							`),
-							{
-								reply_to_message_id: ctx.session.guessMessageId,
+						ctx.session.changePhoto = false
+						ctx.session.time = 0
+						ctx.session.answersOrder = []
+						for (const player of ctx.session.players) {
+							player.answer = null
+						}
+						fs.copyFile(
+							filePath,
+							path.resolve(__dirname, "../changed", fileName),
+							err => {
+								if (err) {
+									console.error(err)
+								}
 							}
 						)
+						await wait(waitStep)
+						await startRound()
+						return
 					}
 
-					if (ctx.session.round === Number(ROUNDS)) {
-						console.log("Finish game")
-						ctx.session.timeouts.stopGame = setTimeout(async () => {
+					ctx.session.time++
+					prevRoundMessage = getRoundMessageText(ctx)
+					try {
+						await bot.api.editMessageCaption(
+							ctx.chat.id,
+							guessMessage.message_id,
+							{
+								caption: prevRoundMessage,
+								parse_mode: "HTML",
+								...(ctx.session.time <= 1
+									? getChangePhotoButton(ctx)
+									: {}),
+							}
+						)
+					} catch (err) {
+						console.log(err)
+					}
+					if (ctx.session.time < TIMER_STEPS) {
+						//update timer
+						ctx.session.timeouts.timer = setTimeout(
+							updateTime,
+							updateTimeDelay
+						)
+					} else {
+						//finishing round
+						try {
+							await wait(updateTimeDelay)
+							const lastRoundMessage = getRoundMessageText(ctx)
+							ctx.session.isWaitingForAnswers = false
+							ctx.session.time = 0
+							if (lastRoundMessage !== prevRoundMessage) {
+								await bot.api.editMessageCaption(
+									ctx.chat.id,
+									guessMessage.message_id,
+									{
+										caption: lastRoundMessage,
+										parse_mode: "HTML",
+									}
+								)
+								await wait(waitStep)
+							}
+
 							const top = []
 							for (const player of ctx.session.players) {
 								if (!player.isPlaying) continue
-								top.push({...player})
+								const addScore =
+									player.answer === null
+										? 0
+										: ctx.session.rightAnswer -
+										  Math.abs(
+												ctx.session.rightAnswer -
+													player.answer
+										  )
+								player.gameScore += addScore
+								top.push({
+									...player,
+									addScore,
+								})
 							}
-							await destroyGame(ctx)
-
-							await ctx.reply(
-								trim(`
-									${bold("🏁 А вот и победители:")}
-							
+							if (top.every(player => player.answer === null)) {
+								console.log("Dead chat")
+								await ctx.reply(
+									trim(`
+								😴 Похоже, вы не играете. Ок, завершаю игру...
+								
+								Напоминаю, что вы должны успеть написать возраст цифрами ${bold(
+									"до"
+								)} того, как загорится красный сигнал.
+								
+								${footerText}
+							`)
+								)
+								await destroyGame(ctx)
+								return
+							} else {
+								ctx.session.players.forEach(
+									player => (player.answer = null)
+								)
+								await ctx.reply(
+									trim(`
+									Человеку на этом фото ${bold(ctx.session.rightAnswer)} ${bold(
+										pluralize(
+											ctx.session.rightAnswer,
+											"год",
+											"года",
+											"лет"
+										)
+									)}. Вот, кто был ближе всего:
+				
 									${top
-										.sort((a, b) => b.score - a.score)
+										.sort((a, b) => b.addScore - a.addScore)
 										.map(
 											(player, index) =>
 												`${
@@ -454,36 +424,91 @@ bot.command("game", async ctx => {
 												} ${index + 1}. ${$mention(
 													bold(player.firstName),
 													player.id
-												)}: ${numberWithSpaces(
-													player.gameScore
-												)} ${pluralize(
-													player.gameScore,
-													"балл",
-													"балла",
-													"баллов"
+												)}: ${revealNumberSign(
+													player.addScore
 												)}`
 										)
 										.join("\n")}
-							
-										${footerText}
-								`)
-							)
-						}, waitStep)
-					} else {
-						ctx.session.answersOrder = []
-						ctx.session.timeouts.afterRound = setTimeout(
-							async () => {
-								ctx.session.round++
-								await startRound()
-							},
-							waitStep * 2
-						)
+								`),
+									{
+										reply_to_message_id:
+											ctx.session.guessMessageId,
+									}
+								)
+							}
+
+							if (ctx.session.round === Number(ROUNDS)) {
+								console.log("Finish game")
+								ctx.session.timeouts.stopGame = setTimeout(
+									async () => {
+										const top = []
+										for (const player of ctx.session
+											.players) {
+											if (!player.isPlaying) continue
+											top.push({...player})
+										}
+										await destroyGame(ctx)
+
+										await ctx.reply(
+											trim(`
+										${bold("🏁 А вот и победители:")}
+								
+										${top
+											.sort((a, b) => b.score - a.score)
+											.map(
+												(player, index) =>
+													`${
+														["🏆", "🎖", "🏅"][
+															index
+														] || "🔸"
+													} ${index + 1}. ${$mention(
+														bold(player.firstName),
+														player.id
+													)}: ${numberWithSpaces(
+														player.gameScore
+													)} ${pluralize(
+														player.gameScore,
+														"балл",
+														"балла",
+														"баллов"
+													)}`
+											)
+											.join("\n")}
+								
+											${footerText}
+									`)
+										)
+									},
+									waitStep
+								)
+							} else {
+								ctx.session.answersOrder = []
+								ctx.session.timeouts.afterRound = setTimeout(
+									async () => {
+										ctx.session.round++
+										await startRound()
+									},
+									waitStep * 2
+								)
+							}
+						} catch (err) {
+							console.log(err)
+						}
 					}
-				} catch (err) {
-					console.log(err)
-				}
-			}
-		}, updateTimeDelay)
+				},
+				updateTimeDelay
+			)
+		} catch (err) {
+			console.error(err)
+			await destroyGame(ctx)
+			await ctx.reply(
+				trim(`
+				${bold("❌ Произошла ошибка!")}
+				
+				Убедитесь, что у бота есть права администратора и разрешение на отправку фото.
+			`)
+			)
+		}
 	}, waitStep)
 })
 
