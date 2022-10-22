@@ -126,6 +126,14 @@ const destroyGame = async ctx => {
 	}
 }
 
+const footerText = trim(`
+	Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
+				
+	/top - 🔝 Рейтинг игроков чата
+	/chart - 🌎 Глобальный рейтинг
+	/game - 🕹 Новая игра
+`)
+
 const handlers = {
 	greet: async ctx =>
 		await ctx.reply(
@@ -138,7 +146,7 @@ const handlers = {
 						? ""
 						: `\n😉 Для начала, добавь меня в ${bold(
 								`групповой чат`
-						  )} и вызови /game.\n`
+						  )} и запусти команду /game.\n`
 				}
 				${bold(`Команды:`)}
 				/game - 🕹 Новая игра
@@ -166,8 +174,10 @@ const handlers = {
 		),
 	change: ctx => {
 		if (ctx.session?.isPlaying) {
-			ctx.session.changePhoto = true
+			ctx.session.changePhoto = ctx.from
 			ctx.session.isWaitingForAnswers = false
+		} else {
+			return "❌ Эта игра уже окончена"
 		}
 	},
 }
@@ -268,9 +278,20 @@ bot.command("game", async ctx => {
 		const updateTimeDelay = ROUND_DURATION / TIMER_STEPS
 		ctx.session.timeouts.timer = setTimeout(async function updateTime() {
 			if (ctx.session.changePhoto) {
-				await bot.api.deleteMessage(
+				/*await bot.api.deleteMessage(
 					ctx.chat.id,
 					guessMessage.message_id
+				)*/
+				await bot.api.editMessageCaption(
+					ctx.chat.id,
+					guessMessage.message_id,
+					{
+						caption: `🔁 Ок, меняю фото по просьбе ${$mention(
+							bold(ctx.session.changePhoto.first_name),
+							ctx.session.changePhoto.id
+						)}...`,
+						parse_mode: "HTML",
+					}
 				)
 				ctx.session.changePhoto = false
 				ctx.session.time = 0
@@ -359,7 +380,8 @@ bot.command("game", async ctx => {
 							Напоминаю, что вы должны успеть написать возраст цифрами ${bold(
 								"до"
 							)} того, как загорится красный сигнал.
-							🔄 /game - Еще разок?
+							
+							${footerText}
 						`)
 						)
 						await destroyGame(ctx)
@@ -435,8 +457,7 @@ bot.command("game", async ctx => {
 										)
 										.join("\n")}
 							
-									Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
-									🔄 /game - Еще разок?
+										${footerText}
 								`)
 							)
 						}, waitStep)
@@ -459,7 +480,6 @@ bot.command("game", async ctx => {
 })
 
 bot.command("stop", async ctx => {
-	console.log("Stop game")
 	if (!isGroupChat(ctx)) {
 		//PM, skipping
 		return await handlers.onlyGroups(ctx)
@@ -476,9 +496,8 @@ bot.command("stop", async ctx => {
 	await ctx.reply(
 		trim(`
 				${bold("🏁 Ок, завершаю игру.")}
-
-				Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
-				🔄 /game - Еще разок?
+							
+				${footerText}
 			`)
 	)
 })
@@ -524,9 +543,8 @@ bot.command("top", async ctx => {
 						)}`
 				)
 				.join("\n")}
-
-			Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
-			🕹 /game - Новая игра
+							
+			${footerText}
 		`)
 	)
 })
@@ -621,8 +639,7 @@ bot.command("chart", async ctx => {
 					  )}\n`
 					: ""
 			}
-			Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
-			🕹 /game - Новая игра
+			${footerText}
 		`)
 	)
 })

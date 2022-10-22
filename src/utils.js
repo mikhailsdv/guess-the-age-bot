@@ -6,7 +6,7 @@ const arrayRandom = arr => {
 
 const revealNumberSign = n => (n > 0 ? `+${n}` : n)
 
-const trim = str => str.replace(/\t+/gm, "")
+const trim = str => str.replace(/\t+|^\n+|\n+$/g, "")
 
 const pluralize = (n, singular, plural, accusative) => {
 	n = Math.abs(n)

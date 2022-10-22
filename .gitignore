@@ -2,6 +2,9 @@
 /.env
 /.idea
 
+/changed/*
+!/changed/.gitkeep
+
 /photos/*
 !/photos/177854_1967-10-05_2012.jpg
 !/photos/17789796_1938-05-31_2008.jpg
