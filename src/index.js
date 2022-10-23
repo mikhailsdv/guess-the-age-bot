@@ -126,16 +126,22 @@ const destroyGame = async ctx => {
 	}
 }
 
-const footerText = trim(`
+const getFooterText = ctx =>
+	trim(`
 	Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
 	Также вступайте в ${link(
 		"общую игровую комнату",
 		"https://t.me/+NXkIxFd5IfpjMDQy"
 	)} 🔥
 
-	/top - 🔝 Рейтинг игроков чата
-	/chart - 🌎 Глобальный рейтинг
-	/game - 🕹 Новая игра
+	🔝 Рейтинг игроков этого чата
+	/top@${ctx.me.username}
+	
+	🌎 Глобальный рейтинг
+	/chart@${ctx.me.username}
+	
+	🕹 Новая игра 
+	/game@${ctx.me.username}
 `)
 
 const handlers = {
@@ -155,10 +161,18 @@ const handlers = {
 						  )} и запусти команду /game.\n`
 				}
 				${bold(`Команды:`)}
-				/game - 🕹 Новая игра
-				/stop - 🛑 Остановить игру
-				/top - 🔝 Рейтинг игроков чата
-				/chart - 🌎 Глобальный рейтинг
+				
+				🕹 Новая игра
+				/game@${ctx.me.username}
+				
+				🛑 Остановить игру
+				/stop@${ctx.me.username}
+				
+				🔝 Рейтинг игроков чата
+				/top@${ctx.me.username}
+				
+				🌎 Глобальный рейтинг
+				/chart@${ctx.me.username}
 				
 				Также вступайте в ${link(
 					"общую игровую комнату",
@@ -230,7 +244,7 @@ bot.command("game", async ctx => {
 	}
 	if (ctx.session?.isPlaying) {
 		return await ctx.reply(
-			"❌ У вас уже запущена игра. Вы можете ее остановить командой /stop."
+			`❌ У вас уже запущена игра. Вы можете ее остановить командой /stop@${ctx.me.username}.`
 		)
 	}
 
@@ -398,7 +412,7 @@ bot.command("game", async ctx => {
 									"до"
 								)} того, как загорится красный сигнал 🔴
 								
-								${footerText}
+								${getFooterText(ctx)}
 							`),
 									{disable_web_page_preview: true}
 								)
@@ -490,7 +504,7 @@ bot.command("game", async ctx => {
 													)
 													.join("\n")}
 										
-												${footerText}
+												${getFooterText(ctx)}
 											`),
 											{disable_web_page_preview: true}
 										)
@@ -536,7 +550,7 @@ bot.command("stop", async ctx => {
 
 	if (!ctx?.session?.isPlaying) {
 		return await ctx.reply(
-			"❌ Игра не была запущена. Вы можете запутить ее командой /game."
+			`❌ Игра не была запущена. Вы можете запутить ее командой /game@${ctx.me.username}.`
 		)
 	}
 
@@ -546,7 +560,7 @@ bot.command("stop", async ctx => {
 		trim(`
 				${bold("🏁 Ок, завершаю игру.")}
 							
-				${footerText}
+				${getFooterText(ctx)}
 			`),
 		{disable_web_page_preview: true}
 	)
@@ -566,7 +580,8 @@ bot.command("top", async ctx => {
 			trim(`
 			${bold("❌ Вы еще не сыграли ни одной игры в этом чате.")}
 			
-			🕹 /game - Новая игра
+			🕹 Новая игра
+			/game@${ctx.me.username}
 		`)
 		)
 	}
@@ -594,7 +609,7 @@ bot.command("top", async ctx => {
 				)
 				.join("\n")}
 							
-			${footerText}
+			${getFooterText(ctx)}
 		`),
 		{disable_web_page_preview: true}
 	)
@@ -690,7 +705,7 @@ bot.command("chart", async ctx => {
 					  )}\n`
 					: ""
 			}
-			${footerText}
+			${getFooterText(ctx)}
 		`),
 		{disable_web_page_preview: true}
 	)
