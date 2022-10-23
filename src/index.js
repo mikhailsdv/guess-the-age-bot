@@ -728,7 +728,7 @@ bot.on("message", async ctx => {
 		}
 		const player = findExact(ctx.session.players, "id", ctx.from.id)
 		if (player) {
-			if (player.answer !== null) return
+			//if (player.answer !== null) return
 			player.answer = answer
 		} else {
 			ctx.session.players.push({
