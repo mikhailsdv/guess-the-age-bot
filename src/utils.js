@@ -66,6 +66,8 @@ const getChangePhotoButton = ctx => ({
 	),
 })
 
+const countPoints = (realAge, userAnswer) => Math.round(((realAge - Math.abs(realAge - userAnswer)) / realAge) * 100)
+
 module.exports = {
 	arrayRandom,
 	revealNumberSign,
@@ -81,4 +83,5 @@ module.exports = {
 	wait,
 	buildCallbackData,
 	parseCallbackData,
+	countPoints,
 }

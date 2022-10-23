@@ -30,6 +30,7 @@ const {
 	wait,
 	parseCallbackData,
 	getChangePhotoButton,
+	countPoints,
 } = require("./utils")
 const {bold, $mention, link} = require("./formatter")
 const {
@@ -391,11 +392,7 @@ bot.command("game", async ctx => {
 								const addScore =
 									player.answer === null
 										? 0
-										: ctx.session.rightAnswer -
-										  Math.abs(
-												ctx.session.rightAnswer -
-													player.answer
-										  )
+										: countPoints(ctx.session.rightAnswer, player.answer)
 								player.gameScore += addScore
 								top.push({
 									...player,
