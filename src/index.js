@@ -319,7 +319,7 @@ bot.command("game", async ctx => {
 								caption: `🔁 Ок, меняю фото по просьбе ${$mention(
 									bold(ctx.session.changePhoto.first_name),
 									ctx.session.changePhoto.id
-								)}...`,
+								)}. Приготовьтесь!`,
 								parse_mode: "HTML",
 							}
 						)
@@ -339,7 +339,7 @@ bot.command("game", async ctx => {
 								}
 							}
 						)
-						await wait(waitStep)
+						await wait(waitStep * 2)
 						await startRound()
 						return
 					}
