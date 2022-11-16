@@ -591,6 +591,7 @@ bot.command("top", async ctx => {
 			${chat.players
 				.slice()
 				.sort((a, b) => b.total_score - a.total_score)
+				.slice(0, 50)
 				.map(
 					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${
