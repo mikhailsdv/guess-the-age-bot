@@ -32,7 +32,7 @@ const {
 	getChangePhotoButton,
 	countPoints,
 } = require("./utils")
-const {bold, $mention, link} = require("./formatter")
+const {bold, $bold, link} = require("./formatter")
 const {
 	createChat,
 	savePlayer,
@@ -74,6 +74,10 @@ const getRoundMessageText = ctx => {
 				ctx.session.answersOrder.indexOf(a.id) -
 				ctx.session.answersOrder.indexOf(b.id)
 		)
+
+	let repeatCount = TIMER_STEPS - ctx.session.time
+	repeatCount < 0 && (repeatCount = 0)
+
 	return trim(`
 		${bold(`Раунд ${ctx.session.round}/${ROUNDS}`)}
 		Сколько, по-вашему, лет человеку на фото?
@@ -82,16 +86,15 @@ const getRoundMessageText = ctx => {
 				? `\n${answers
 						.map(
 							(player, index) =>
-								`${index + 1}. ${$mention(
-									bold(player.firstName),
-									player.id
-								)}: ${player.answer}`
+								`${index + 1}. ${$bold(player.firstName)}: ${
+									player.answer
+								}`
 						)
 						.join("\n")}\n`
 				: ""
 		}
 		${["🟢", "🟡", "🔴"].slice(0, ctx.session.time).join("")}${"⚪️".repeat(
-		TIMER_STEPS - ctx.session.time
+		repeatCount
 	)}
 	`)
 }
@@ -316,9 +319,8 @@ bot.command("game", async ctx => {
 							ctx.chat.id,
 							guessMessage.message_id,
 							{
-								caption: `🔁 Ок, меняю фото по просьбе ${$mention(
-									bold(ctx.session.changePhoto.first_name),
-									ctx.session.changePhoto.id
+								caption: `🔁 Ок, меняю фото по просьбе ${$bold(
+									ctx.session.changePhoto.first_name
 								)}. Приготовьтесь!`,
 								parse_mode: "HTML",
 							}
@@ -392,7 +394,10 @@ bot.command("game", async ctx => {
 								const addScore =
 									player.answer === null
 										? 0
-										: countPoints(ctx.session.rightAnswer, player.answer)
+										: countPoints(
+												ctx.session.rightAnswer,
+												player.answer
+										  )
 								player.gameScore += addScore
 								top.push({
 									...player,
@@ -437,9 +442,8 @@ bot.command("game", async ctx => {
 												`${
 													["🏆", "🎖", "🏅"][index] ||
 													"🔸"
-												} ${index + 1}. ${$mention(
-													bold(player.firstName),
-													player.id
+												} ${index + 1}. ${$bold(
+													player.firstName
 												)}: ${revealNumberSign(
 													player.addScore
 												)}`
@@ -485,11 +489,8 @@ bot.command("game", async ctx => {
 																][index] || "🔸"
 															} ${
 																index + 1
-															}. ${$mention(
-																bold(
-																	player.firstName
-																),
-																player.id
+															}. ${$bold(
+																player.firstName
 															)}: ${numberWithSpaces(
 																player.gameScore
 															)} ${pluralize(
@@ -594,10 +595,9 @@ bot.command("top", async ctx => {
 					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${
 							index + 1
-						}. ${$mention(
-							bold(player.first_name),
-							player.id
-						)}: ${numberWithSpaces(player.total_score)} ${pluralize(
+						}. ${$bold(player.first_name)}: ${numberWithSpaces(
+							player.total_score
+						)} ${pluralize(
 							player.total_score,
 							"балл",
 							"балла",
@@ -676,10 +676,9 @@ bot.command("chart", async ctx => {
 					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${
 							String(ctx.from.id) === player.id ? "Вы: " : ""
-						}${$mention(
-							bold(player.first_name),
-							player.id
-						)}: ${numberWithSpaces(player.total_score)} ${pluralize(
+						}${$bold(player.first_name)}: ${numberWithSpaces(
+							player.total_score
+						)} ${pluralize(
 							player.total_score,
 							"балл",
 							"балла",
@@ -689,9 +688,8 @@ bot.command("chart", async ctx => {
 				.join("\n")}
 			${
 				currentPlayer
-					? `...\n🔸 ${currentPlayer.index + 1}. ${$mention(
-							bold(currentPlayer.first_name),
-							currentPlayer.id
+					? `...\n🔸 ${currentPlayer.index + 1}. ${$bold(
+							currentPlayer.first_name
 					  )}: ${numberWithSpaces(
 							currentPlayer.total_score
 					  )} ${pluralize(
