@@ -32,7 +32,7 @@ const {
 	getChangePhotoButton,
 	countPoints,
 } = require("./utils")
-const {bold, $bold, link} = require("./formatter")
+const {bold, link} = require("./formatter")
 const {
 	createChat,
 	savePlayer,
@@ -86,7 +86,7 @@ const getRoundMessageText = ctx => {
 				? `\n${answers
 						.map(
 							(player, index) =>
-								`${index + 1}. ${$bold(player.firstName)}: ${
+								`${index + 1}. ${bold(player.firstName)}: ${
 									player.answer
 								}`
 						)
@@ -319,7 +319,7 @@ bot.command("game", async ctx => {
 							ctx.chat.id,
 							guessMessage.message_id,
 							{
-								caption: `🔁 Ок, меняю фото по просьбе ${$bold(
+								caption: `🔁 Ок, меняю фото по просьбе ${bold(
 									ctx.session.changePhoto.first_name
 								)}. Приготовьтесь!`,
 								parse_mode: "HTML",
@@ -442,7 +442,7 @@ bot.command("game", async ctx => {
 												`${
 													["🏆", "🎖", "🏅"][index] ||
 													"🔸"
-												} ${index + 1}. ${$bold(
+												} ${index + 1}. ${bold(
 													player.firstName
 												)}: ${revealNumberSign(
 													player.addScore
@@ -489,7 +489,7 @@ bot.command("game", async ctx => {
 																][index] || "🔸"
 															} ${
 																index + 1
-															}. ${$bold(
+															}. ${bold(
 																player.firstName
 															)}: ${numberWithSpaces(
 																player.gameScore
@@ -595,7 +595,7 @@ bot.command("top", async ctx => {
 					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${
 							index + 1
-						}. ${$bold(player.first_name)}: ${numberWithSpaces(
+						}. ${bold(player.first_name)}: ${numberWithSpaces(
 							player.total_score
 						)} ${pluralize(
 							player.total_score,
@@ -676,7 +676,7 @@ bot.command("chart", async ctx => {
 					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${
 							String(ctx.from.id) === player.id ? "Вы: " : ""
-						}${$bold(player.first_name)}: ${numberWithSpaces(
+						}${bold(player.first_name)}: ${numberWithSpaces(
 							player.total_score
 						)} ${pluralize(
 							player.total_score,
@@ -688,7 +688,7 @@ bot.command("chart", async ctx => {
 				.join("\n")}
 			${
 				currentPlayer
-					? `...\n🔸 ${currentPlayer.index + 1}. ${$bold(
+					? `...\n🔸 ${currentPlayer.index + 1}. ${bold(
 							currentPlayer.first_name
 					  )}: ${numberWithSpaces(
 							currentPlayer.total_score
