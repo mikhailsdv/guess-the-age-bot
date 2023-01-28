@@ -2,7 +2,7 @@ const mongoose = require("mongoose")
 const {Schema} = mongoose
 
 const connection = mongoose.createConnection(
-	"mongodb://localhost:27017/guess-the-age"
+	"mongodb+srv://emin:emin@cluster0.brfxh5a.mongodb.net/?retryWrites=true&w=majority"
 )
 
 const Chat = connection.model(
