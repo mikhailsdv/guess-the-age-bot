@@ -251,7 +251,7 @@ bot.command('start', (ctx) => {
     })
 })
 
-bot.action('hp', (ctx) =>{
+bot.action("hp", (ctx) =>{
     ctx.deleteMessage()
     ctx.telegram.sendMessage(ctx.chat.id, 'Stats for Maharashtra',
     {
