@@ -5,6 +5,16 @@ const {
 	ROUND_DURATION,
 	TIMER_STEPS,
 } = require("./env")
+
+const {Telegraf, Telegram} = require("telegraf")
+const config = require("./env")
+const db = require("./db")
+const fs = require("fs")
+const {numberWithSpaces, arrayRandom, trueTrim, plusminus, pluralize, bold} = require("./functions")
+const telegram = new Telegram(config.token)
+const bot = new Telegraf(config.token)
+
+
 const fs = require("fs")
 const path = require("path")
 const {
