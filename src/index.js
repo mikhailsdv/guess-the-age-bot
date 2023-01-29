@@ -130,6 +130,28 @@ const destroyGame = async ctx => {
 	}
 }
 
+
+
+bot.command('start', (ctx) => {
+    ctx.reply(`
+👋 Salam!
+
+ Mən, vaxtıvızı əyləncəli hala gətirmək üçün Yaş Təxmin etmə botuyam 🙂
+
+ Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
+        reply_markup:{
+            inline_keyboard:[
+                [{text:'Botu Qrupa Əlavə Et ', url:'https://t.me/Texmingamebot?startgroup=true'}]
+        ]
+        }
+    })
+)
+
+
+
+
+
+
 const getFooterText = ctx =>
 	trim(`
 	Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
@@ -148,19 +170,6 @@ const getFooterText = ctx =>
 	/game@${ctx.me.username}
 `)
 
-bot.command('start', (ctx) => {
-    ctx.reply(`
-👋 Salam!
-
- Mən, vaxtıvızı əyləncəli hala gətirmək üçün Yaş Təxmin etmə botuyam 🙂
-
- Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
-        reply_markup:{
-            inline_keyboard:[
-                [{text:'Botu Qrupa Əlavə Et ', url:'https://t.me/Texmingamebot?startgroup=true'}]
-        ]
-        }
-    })
 
 	onlyGroups: async ctx =>
 		await ctx.reply(
