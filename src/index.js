@@ -7,7 +7,6 @@ const {
 } = require("./env")
 const fs = require("fs")
 const path = require("path")
-const {Telegraf, Telegram} = require("telegraf")
 const {
 	Bot,
 	InputFile,
@@ -238,18 +237,18 @@ bot.catch(err => {
 bot.use(session({getSessionKey, initial: () => ({})}))
 
 
-bot.action("hp", (ctx) =>{
+bot.action('vip', ctx=>{
     ctx.deleteMessage()
-    ctx.telegram.sendMessage(ctx.chat.id, 'Stats for Maharashtra',
-    {
-        reply_markup: { 
-            inline_keyboard: [
-                [{text: "Go back to menu", callback_data: "go-back" }]
+    ctx.replyWithMarkdown(`*🌍 Ülkeler*`,{
+        reply_markup:{
+            inline_keyboard:[
+                [{text:'🇦🇿 Azərbaycan', callback_data:'AZ'}],
+                [{text:'🇹🇷 Türkiye', callback_data:'TR'}],
+                [{text:'🔙 Geri', callback_data:'start'}]
             ]
         }
     })
 })
-
 
 
 bot.command('start', (ctx) => {
