@@ -236,6 +236,21 @@ bot.catch(err => {
 
 bot.use(session({getSessionKey, initial: () => ({})}))
 
+
+bot.action("hp", (ctx) =>{
+    ctx.deleteMessage()
+    ctx.telegram.sendMessage(ctx.chat.id, 'Stats for Maharashtra',
+    {
+        reply_markup: { 
+            inline_keyboard: [
+                [{text: "Go back to menu", callback_data: "go-back" }]
+            ]
+        }
+    })
+})
+
+
+
 bot.command('start', (ctx) => {
     ctx.reply(`
 👋 Salam!
@@ -250,19 +265,6 @@ bot.command('start', (ctx) => {
         }
     })
 })
-
-bot.action("hp", (ctx) =>{
-    ctx.deleteMessage()
-    ctx.telegram.sendMessage(ctx.chat.id, 'Stats for Maharashtra',
-    {
-        reply_markup: { 
-            inline_keyboard: [
-                [{text: "Go back to menu", callback_data: "go-back" }]
-            ]
-        }
-    })
-})
-
 
 bot.command("game", async ctx => {
 	console.log("Game command")
