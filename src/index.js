@@ -245,8 +245,7 @@ bot.command('start', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Qrupa Əlavə Et ', url:'https://t.me/Texmingamebot?startgroup=true'}],
-                [{text:'Əmirlər ', url:'https://t.me/Texmingamebot?startgroup=true'}]
+                [{text:'Botu Qrupa Əlavə Et ', url:'https://t.me/Texmingamebot?startgroup=true'}, {text:'Əmirlər ', url:'https://t.me/Texmingamebot?startgroup=true'}]
         ]
         }
     })
