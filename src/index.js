@@ -239,7 +239,9 @@ bot.use(session({getSessionKey, initial: () => ({})}))
 bot.command('start', (ctx) => {
     ctx.reply(`
 👋 Salam!
+
  Mən, vaxtıvızı əyləncəli hala gətirmək üçün Yaş Təxmin etmə botuyam 🙂
+
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
@@ -247,6 +249,7 @@ bot.command('start', (ctx) => {
         ]
         }
     })
+})
 
 bot.command("game", async ctx => {
 	console.log("Game command")
