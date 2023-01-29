@@ -7,6 +7,7 @@ const {
 } = require("./env")
 const fs = require("fs")
 const path = require("path")
+const {Telegraf, Telegram} = require("telegraf")
 const {
 	Bot,
 	InputFile,
