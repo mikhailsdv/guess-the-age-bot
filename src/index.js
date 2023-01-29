@@ -10,7 +10,8 @@ const {Telegraf, Telegram} = require("telegraf")
 const config = require("./env")
 const db = require("./db")
 const telegram = new Telegram(config.token)
-const bot = new Telegraf(config.token)
+
+
 
 
 const fs = require("fs")
