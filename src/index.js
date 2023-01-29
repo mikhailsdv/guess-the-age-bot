@@ -1,4 +1,4 @@
-const {
+Эхconst {
 	BOT_TOKEN,
 	REQUEST_TIMEOUT,
 	ROUNDS,
@@ -161,7 +161,7 @@ bot.command('start', (ctx) => {
         ]
         }
     })
-})
+),
 
 	onlyGroups: async ctx =>
 		await ctx.reply(
