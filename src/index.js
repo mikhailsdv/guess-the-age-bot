@@ -257,7 +257,7 @@ bot.action('hp', (ctx) =>{
     {
         reply_markup: { 
             inline_keyboard: [
-               [{text: "Go back to menu", callback_data: "go-back" }]
+                [{text: "Go back to menu", callback_data: "go-back" }]
             ]
         }
     })
