@@ -1,4 +1,4 @@
-Эхconst {
+const {
 	BOT_TOKEN,
 	REQUEST_TIMEOUT,
 	ROUNDS,
