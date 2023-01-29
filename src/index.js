@@ -161,7 +161,6 @@ bot.command('start', (ctx) => {
         ]
         }
     })
-),
 
 	onlyGroups: async ctx =>
 		await ctx.reply(
