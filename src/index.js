@@ -9,7 +9,6 @@ const {
 const {Telegraf, Telegram} = require("telegraf")
 const config = require("./env")
 const db = require("./db")
-const {numberWithSpaces, arrayRandom, trueTrim, plusminus, pluralize, bold} = require("./functions")
 const telegram = new Telegram(config.token)
 const bot = new Telegraf(config.token)
 
