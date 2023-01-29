@@ -247,7 +247,6 @@ bot.command('start', (ctx) => {
         ]
         }
     })
-),
 
 bot.command("game", async ctx => {
 	console.log("Game command")
