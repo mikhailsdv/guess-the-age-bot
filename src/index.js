@@ -245,13 +245,13 @@ bot.command('start', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Qrupa Əlavə Et ', callback_data:"geri"}, {text:'Əmirlər ', url:'https://t.me/Texmingamebot?startgroup=true'}]
+                [{text:'Botu Qrupa Əlavə Et ', callback_data:"hp"}, {text:'Əmirlər ', url:'https://t.me/Texmingamebot?startgroup=true'}]
         ]
         }
     })
 })
 
-bot.action('geri', (ctx) =>{
+bot.action('hp', (ctx) =>{
     ctx.deleteMessage()
     ctx.telegram.sendMessage(ctx.chat.id, 'Stats for Maharashtra',
     {
