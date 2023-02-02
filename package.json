@@ -4,6 +4,7 @@
   "description": "Telegram-bot for playing «guess the age» game in group chats.",
   "main": "index.js",
   "dependencies": {
+    "telegraf": "^3.38.0",
     "@grammyjs/parse-mode": "^1.5.0",
     "@grammyjs/runner": "^1.0.4",
     "dotenv": "^16.0.3",
