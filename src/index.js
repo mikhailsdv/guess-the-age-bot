@@ -6,7 +6,6 @@ const {
 	TIMER_STEPS,
 } = require("./env")
 
-const {Telegraf, Telegram} = require("telegraf")
 const config = require("./env")
 const db = require("./db")
 const telegram = new Telegram(config.token)
