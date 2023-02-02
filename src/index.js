@@ -7,7 +7,7 @@ const {
 } = require("./env")
 
 
-
+const { Telegraf, Telegram } = require("telegraf")
 const fs = require("fs")
 const path = require("path")
 const {
@@ -239,7 +239,7 @@ bot.catch(err => {
 
 bot.use(session({getSessionKey, initial: () => ({})}))
 
-bot.action('start', ctx=>{
+bot.action('hp', ctx=>{
     ctx.deleteMessage()
     ctx.replyWithMarkdown(`*Merhaba,Ben TeslaGameBot Tahmin Oyunu Zamanınızı eğlenceli hale getirimek için\nTelegram oyun botuyum🤖\n**Temel komutların listesi için /yardim*
         `,{
