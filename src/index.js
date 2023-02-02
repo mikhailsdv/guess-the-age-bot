@@ -239,18 +239,19 @@ bot.catch(err => {
 
 bot.use(session({getSessionKey, initial: () => ({})}))
 
-bot.action('hp', ctx=>{
-    ctx.deleteMessage()
-    ctx.replyWithMarkdown(`*Merhaba,Ben TeslaGameBot Tahmin Oyunu Zamanınızı eğlenceli hale getirimek için\nTelegram oyun botuyum🤖\n**Temel komutların listesi için /yardim*
-        `,{
-        reply_markup:{
-            inline_keyboard:[
-                [{text:'Botu Grupa Ekle ✅', url:`t.me/${process.env.BOT_ISMI}?startgroup=true`}],
-                [{text:'Resmi Kanalımız 📣', url:`t.me/teslagametr`},{text:'VİP Gruplar 💎', callback_data:'vip'}]
-            ]
-        }
-    })
-})
+const inlineKeyboard = new InlineKeyboard().text("click", "click-payload");
+
+// Send a keyboard along with a message.
+bot.command("start", async (ctx) => {
+  await ctx.reply("Curious? Click me!", { reply_markup: inlineKeyboard });
+});
+
+// Wait for click events with specific callback data.
+bot.callbackQuery("click-payload", async (ctx) => {
+  await ctx.answerCallbackQuery({
+    text: "You were curious, indeed!",
+  });
+});
 
 bot.command('start', (ctx) => {
     ctx.reply(`
