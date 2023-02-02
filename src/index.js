@@ -240,19 +240,6 @@ bot.catch(err => {
 bot.use(session({getSessionKey, initial: () => ({})}))
 
 
-bot.action('vip', ctx=>{
-    ctx.deleteMessage()
-    ctx.replyWithMarkdown(`*🌍 Ülkeler*`,{
-        reply_markup:{
-            inline_keyboard:[
-                [{text:'🇦🇿 Azərbaycan', callback_data:'AZ'}],
-                [{text:'🇹🇷 Türkiye', callback_data:'TR'}],
-                [{text:'🔙 Geri', callback_data:'start'}]
-            ]
-        }
-    })
-})
-
 
 bot.command('start', (ctx) => {
     ctx.reply(`
@@ -263,7 +250,7 @@ bot.command('start', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Qrupa Əlavə Et ', callback_data:"hp"}, {text:'Əmirlər ', url:'https://t.me/Texmingamebot?startgroup=true'}]
+                [{text:'Botu Qrupa Əlavə Et ', callback_data:"hp"}, {text:'Sahib ', url:'t.me/emin_orjinal'}]
         ]
         }
     })
