@@ -765,7 +765,7 @@ bot.on("message", async ctx => {
 		if (!/^[0-9]+$/.test(ctx.msg.text)) return
 		const answer = Number(ctx.msg.text)
 		if (answer <= 0 || answer > 120) {
-			return ctx.reply("Cavab diapazondan kənardadır (1 - 120), {
+			return ctx.reply("Cavab diapazondan kənardadır (1 - 120)", {
 				reply_to_message_id: ctx.msg.message_id,
 			})
 		}
