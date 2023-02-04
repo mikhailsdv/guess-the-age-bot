@@ -176,9 +176,9 @@ const handlers = {
 		),
 	onlyGroups: async ctx =>
 		await ctx.reply(
-			`❌ Эта команда доступна только для ${bold(
-				`групповых чатов`
-			)}. Создайте чат с друзьями и добавьте туда бота.`,
+			`❌ Bu əmr yalnız üçün mövcuddur ${bold(
+				`qrup söhbətləri`
+			)}. Dostlarla söhbət yaradın və oraya bot əlavə edin.`,
 			isGroupChat(ctx)
 				? null
 				: {
