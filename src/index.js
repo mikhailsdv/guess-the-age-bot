@@ -134,7 +134,7 @@ const destroyGame = async ctx => {
 }
 
 const getFooterText = ctx =>
-	trim(` 1 yer emin`)
+	trim(``)
 
 const handlers = {
 	greet: async ctx =>
@@ -233,8 +233,8 @@ bot.command('start', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Grupa Ekle 👥', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
-                [{text:'Resmi Kanalımız 🆕', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
+                [{text:'Botu Qrupa Əlavə Edin 👥', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
+                [{text:'Rəsmi Kanalımız 🆕', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
             ]
         }
     })
@@ -242,7 +242,7 @@ bot.command('start', (ctx) => {
 
 //geri
 bot.callbackQuery("əmr", async (ctx) => {
-  await ctx.reply(`\n👋 Salam Mən qrup çatlarında yaşı təxmin et oynamaq üçün bir robotam Qaydalar sadədir: Mən sizə bir Müğəninin şəklini atıram, sizin vəzifəniz onun yaşını təxmin etməkdir. Nə qədər dəqiq cavab versəniz, bir o qədər az xal itirirsiniz Əmrlər /game - 🕹 Yeni oyun /stop - 🛑 Oyunu dayandir /top - 🔝  Çat oyunçusu reytinqi /chart - 🌎 Qlobal reytinq /help - Əmrlər haqqinda məlumat `,{
+  await ctx.reply(`\n👋 Salam Mən qrup çatlarında yaşı təxmin et oynamaq üçün bir robotam Qaydalar sadədir: Mən sizə bir Müğəninin şəklini atıram, sizin vəzifəniz onun yaşını təxmin etməkdir. Nə qədər dəqiq cavab versəniz, bir o qədər az xal itirirsiniz Əmrlər \n\n /game - 🕹 Yeni oyun \n\n /stop - 🛑 Oyunu dayandir \n\n /top - 🔝  Qrup oyunçusu reytinqi \n\n /reytinq - 🌎 Qlobal reytinq \n\n /help - Əmrlər haqqinda məlumat `,{
         reply_markup:{
             inline_keyboard:[
                 [{text:'Geri Qayıt', callback_data:"geri"}]
@@ -262,8 +262,8 @@ bot.callbackQuery('geri', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Qrupa Əlavə Edin ✅', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
-                [{text:'Resmi Kanalımız 📣', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
+                [{text:'Botu Qrupa Əlavə Edin 👥', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
+                [{text:'Rəsmi Kanalımız 🆕', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
             ]
         }
     })
