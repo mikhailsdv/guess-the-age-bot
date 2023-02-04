@@ -134,22 +134,7 @@ const destroyGame = async ctx => {
 }
 
 const getFooterText = ctx =>
-	trim(`
-	Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
-	Также вступайте в ${link(
-		"Ümumi oyun otağı",
-		"https://t.me/goldmekan"
-	)} 🔥
-
-	🔝 Рейтинг игроков этого чата
-	/top@${ctx.me.username}
-	
-	🌎 Глобальный рейтинг
-	/chart@${ctx.me.username}
-	
-	🕹 Новая игра 
-	/game@${ctx.me.username}
-`)
+	trim(``)
 
 const handlers = {
 	greet: async ctx =>
