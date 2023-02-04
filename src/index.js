@@ -176,14 +176,14 @@ const handlers = {
 		),
 	onlyGroups: async ctx =>
 		await ctx.reply(
-			`❌ Bu əmr yalnız üçün mövcuddur ${bold(
-				`qrup söhbətləri`
-			)}. Dostlarla söhbət yaradın və oraya bot əlavə edin.`,
+			`❌ Bu əmr yalnız qrup söhbətləri ${bold(
+				`üçün mövcuddur`
+			)}. Bir Qrup yaradın və oraya botu əlavə edin.`,
 			isGroupChat(ctx)
 				? null
 				: {
 						reply_markup: new InlineKeyboard().url(
-							"Qrupa bot əlavə edin 👥",
+							"Botu Qrupa Əlavə Edin 👥",
 							`https://t.me/${ctx.me.username}?startgroup=add`
 						),
 				  }
@@ -233,7 +233,7 @@ bot.command('start', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Grupa Ekle ✅', url:`https://t.me/${process.env.BOT_ISMI}?startgroup=true`}],
+                [{text:'Botu Grupa Ekle ✅', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
                 [{text:'Resmi Kanalımız 📣', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
             ]
         }
@@ -262,7 +262,7 @@ bot.callbackQuery('geri', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Grupa Ekle ✅', url:`https://t.me/${process.env.BOT_ISMI}?startgroup=true`}],
+                [{text:'Botu Qrupa Əlavə Edin ✅', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
                 [{text:'Resmi Kanalımız 📣', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
             ]
         }
@@ -348,9 +348,9 @@ bot.command("game", async ctx => {
 							ctx.chat.id,
 							guessMessage.message_id,
 							{
-								caption: `🔁 Yaxşı, xahişlə şəkli dəyişirəm ${bold(
+								caption: `🔁 Yaxşı, şəkli dəyişirəm ${bold(
 									ctx.session.changePhoto.first_name
-								)}. Приготовьтесь!`,
+								)}. Hazır ol!`,
 								parse_mode: "HTML",
 							}
 						)
@@ -458,9 +458,9 @@ bot.command("game", async ctx => {
 									Bu fotodakı şəxs ${bold(ctx.session.rightAnswer)} ${bold(
 										pluralize(
 											ctx.session.rightAnswer,
-											"Yaş",
-											"Yaş",
-											"Yaş"
+											"Yaşındadır",
+											"Yaşındadır",
+											"Yaşındadır"
 										)
 									)}. Budur, kim daha yaxın idi:
 				
