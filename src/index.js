@@ -134,7 +134,7 @@ const destroyGame = async ctx => {
 }
 
 const getFooterText = ctx =>
-	trim(``)
+	trim(` 1 yer emin`)
 
 const handlers = {
 	greet: async ctx =>
@@ -178,7 +178,7 @@ const handlers = {
 		await ctx.reply(
 			`❌ Bu əmr yalnız qrup söhbətləri ${bold(
 				`üçün mövcuddur`
-			)}. Bir Qrup yaradın və oraya botu əlavə edin.`,
+			)}. Bir Qrup yaradın və ora botu əlavə edin.`,
 			isGroupChat(ctx)
 				? null
 				: {
@@ -233,8 +233,8 @@ bot.command('start', (ctx) => {
  Daha ətraflı məlumat üçün /help əmrindən istifadə edin.. `,{
         reply_markup:{
             inline_keyboard:[
-                [{text:'Botu Grupa Ekle ✅', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
-                [{text:'Resmi Kanalımız 📣', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
+                [{text:'Botu Grupa Ekle 👥', url:`https://t.me/${ctx.me.username}?startgroup=add`}],
+                [{text:'Resmi Kanalımız 🆕', url:`t.me/goldenbotresmi`},{text:'Əmirlər', callback_data:'əmr'}]
             ]
         }
     })
@@ -277,7 +277,7 @@ bot.command("game", async ctx => {
 	}
 	if (ctx.session?.isPlaying) {
 		return await ctx.reply(
-			`❌ Davam edən oyun artıq var. Komanda ilə dayandıra bilərsiniz /stop@${ctx.me.username}.`
+			`❌ Davam edən oyun artıq var. /stop@${ctx.me.username} Əmri ilə oyunu dayandıra bilərsiniz.`
 		)
 	}
 
@@ -439,10 +439,6 @@ bot.command("game", async ctx => {
 									trim(`
 								😴 Deyəsən oynamırsan. Yaxşı, oyunu bitirdim...
 								
-								⚠️ Xatırladıram ki, yaşınızı rəqəmlərlə yazmağa vaxtınız olmalıdır ${bold(
-									"до"
-								)} qırmızı işıq yandıqda 🔴
-								
 								${getFooterText(ctx)}
 							`),
 									{disable_web_page_preview: true}
@@ -500,7 +496,7 @@ bot.command("game", async ctx => {
 
 										await ctx.reply(
 											trim(`
-												${bold("🏁 Və burada qaliblər var:")}
+												${bold("🏁 Qaliblər:")}
 										
 												${top
 													.sort(
@@ -607,7 +603,7 @@ bot.command("top", async ctx => {
 			trim(`
 			${bold("❌ Bu çatda hələ heç bir oyun oynamamısınız.")}
 			
-			🕹 Новая игра
+			🕹 Yeni oyun başlat
 			/game@${ctx.me.username}
 		`)
 		)
@@ -615,7 +611,7 @@ bot.command("top", async ctx => {
 
 	await ctx.reply(
 		trim(`
-			${bold("🔝 Bu çatda bütün zamanların ən yaxşı oyunçuları:")}
+			${bold("🔝 Bu Qrupda bütün zamanların ən yaxşı oyunçuları:")}
 
 			${chat.players
 				.slice()
@@ -642,7 +638,7 @@ bot.command("top", async ctx => {
 	)
 })
 
-bot.command("chart", async ctx => {
+bot.command("reytinq", async ctx => {
 	console.log("Chart command")
 
 	const chats = await getAllChats()
@@ -705,7 +701,7 @@ bot.command("chart", async ctx => {
 				.map(
 					(player, index) =>
 						`${["🏆", "🎖", "🏅"][index] || "🔸"} ${index + 1}. ${
-							String(ctx.from.id) === player.id ? "Вы: " : ""
+							String(ctx.from.id) === player.id ? "Sən: " : ""
 						}${bold(player.first_name)}: ${numberWithSpaces(
 							player.total_score
 						)} ${pluralize(
@@ -800,5 +796,5 @@ bot.on("callback_query", async ctx => {
 ;(async () => {
 	await bot.api.deleteWebhook({drop_pending_updates: true})
 	run(bot)
-	console.log("Bot тheyyet neferi")
+	console.log("Bot bomba kimi işləyir")
 })()
