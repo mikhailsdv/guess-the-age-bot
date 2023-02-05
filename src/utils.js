@@ -35,7 +35,7 @@ const findExact = (arr, field, value) => arr.find(item => item[field] === value)
 
 const getAddToGroupButton = ctx => ({
 	reply_markup: new InlineKeyboard().url(
-		"Добавить бота в группу 👥",
+		"Botu Qrupa Əlavə Et 👥",
 		`https://t.me/${ctx.me.username}?startgroup=add`
 	),
 })
@@ -61,7 +61,7 @@ const parseCallbackData = str => {
 
 const getChangePhotoButton = ctx => ({
 	reply_markup: new InlineKeyboard().text(
-		"🔁 Сменить фото",
+		"🔁 Şəkli dəyişdirin",
 		buildCallbackData("change", ctx.chat.id)
 	),
 })
