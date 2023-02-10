@@ -133,10 +133,6 @@ const destroyGame = async ctx => {
 const getFooterText = ctx =>
 	trim(`
 	Если вам нравится этот бот, поддержите автора подпиской @FilteredInternet.
-	Также вступайте в ${link(
-		"общую игровую комнату",
-		"https://t.me/+NXkIxFd5IfpjMDQy"
-	)} 🔥
 
 	🔝 Рейтинг игроков этого чата
 	/top@${ctx.me.username}
@@ -178,10 +174,6 @@ const handlers = {
 				🌎 Глобальный рейтинг
 				/chart@${ctx.me.username}
 				
-				Также вступайте в ${link(
-					"общую игровую комнату",
-					"https://t.me/+NXkIxFd5IfpjMDQy"
-				)} 🔥
 				Канал автора: @FilteredInternet ❤️ 
 			`),
 			isGroupChat(ctx) ? null : getAddToGroupButton(ctx)
