@@ -324,7 +324,7 @@ bot.command("game", async ctx => {
 						for (const player of ctx.session.players) {
 							player.answer = null
 						}
-						fs.copyFile(
+						/* fs.copyFile(
 							filePath,
 							path.resolve(__dirname, "../changed", fileName),
 							err => {
@@ -332,7 +332,7 @@ bot.command("game", async ctx => {
 									console.error(err)
 								}
 							}
-						)
+						) */
 						await wait(waitStep * 2)
 						await startRound()
 						return
