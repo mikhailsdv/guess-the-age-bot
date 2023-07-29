@@ -50,22 +50,6 @@ bot.api.config.use(parseMode("HTML"))
 
 const waitStep = 1500
 
-/*interface GameState {
-	timeouts: object
-	currentGuessMessageId: number
-	currentRound: number
-	currentTime: number
-	answersOrder: []
-	isPlaying: false
-	players: {
-		firstName: string
-		isPlaying: boolean
-		answer: string
-		gameScore: number
-		totalScore: number
-	}[]
-}*/
-
 const getRoundMessageText = ctx => {
 	const answers = ctx.session.players
 		.filter(player => player.isPlaying && player.answer !== null)
@@ -731,15 +715,6 @@ bot.on("message", async ctx => {
 			})
 		}
 		ctx.session.answersOrder.push(ctx.from.id)
-
-		/*await bot.api.editMessageCaption(
-			ctx.chat.id,
-			ctx.session.guessMessageId,
-			{
-				caption: getRoundMessageText(ctx),
-				parse_mode: "HTML",
-			}
-		)*/
 	}
 })
 

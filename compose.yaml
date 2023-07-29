@@ -7,8 +7,6 @@ services:
             - database
         environment:
             NODE_ENV: production
-        # ports:
-        #   - 3005:3000
 
     database:
         restart: always
