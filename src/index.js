@@ -48,7 +48,7 @@ const bot = new Bot(BOT_TOKEN)
 bot.use(hydrateReply)
 bot.api.config.use(parseMode("HTML"))
 
-const waitStep = 1500
+const waitStep = 1600
 
 const getRoundMessageText = ctx => {
 	const answers = ctx.session.players
@@ -348,7 +348,7 @@ bot.command("game", async ctx => {
 					} else {
 						//finishing round
 						try {
-							await wait(updateTimeDelay)
+							await wait(updateTimeDelay + 1500)
 							const lastRoundMessage = getRoundMessageText(ctx)
 							ctx.session.isWaitingForAnswers = false
 							ctx.session.time = 0
