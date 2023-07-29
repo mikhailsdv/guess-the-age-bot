@@ -1,0 +1,22 @@
+services:
+    app:
+        restart: always
+        build:
+            context: .
+        links:
+            - database
+        environment:
+            NODE_ENV: production
+        # ports:
+        #   - 3005:3000
+
+    database:
+        restart: always
+        image: mongo:6
+        volumes:
+            - database:/data/db
+        ports:
+            - 127.0.0.1:${MONGO_EXTERNAL_PORT}:27017
+
+volumes:
+    database:

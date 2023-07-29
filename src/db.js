@@ -1,8 +1,9 @@
+const {MONGO_HOST} = require("./env")
 const mongoose = require("mongoose")
 const {Schema} = mongoose
 
 const connection = mongoose.createConnection(
-	"mongodb://localhost:27017/guess-the-age"
+	`mongodb://${MONGO_HOST}:27017/guess-the-age`
 )
 
 const Chat = connection.model(
