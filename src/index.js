@@ -32,7 +32,7 @@ const {
 	getChangePhotoButton,
 	countPoints,
 } = require("./utils")
-const {bold, link} = require("./formatter")
+const {bold} = require("./formatter")
 const {
 	createChat,
 	savePlayer,
