@@ -1,17 +1,17 @@
 services:
     app:
-        restart: always
+        restart: unless-stopped
+        depends_on:
+            - database
         build:
             context: .
         env_file:
             - .env
-        links:
-            - database
         environment:
             NODE_ENV: production
 
     database:
-        restart: always
+        restart: unless-stopped
         image: mongo:6
         volumes:
             - database:/data/db
