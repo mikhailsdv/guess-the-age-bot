@@ -66,7 +66,14 @@ const getChangePhotoButton = ctx => ({
 	),
 })
 
-const countPoints = (realAge, userAnswer) => Math.round(((realAge - Math.abs(realAge - userAnswer)) / realAge) * 100)
+const countPoints = (realAge, userAnswer) => {
+	if (realAge <= 0) return 0
+
+	const ageDifference = Math.abs(realAge - userAnswer)
+	const points = Math.round(((realAge - ageDifference) / realAge) * 100)
+
+	return Math.max(-100, Math.min(100, points))
+}
 
 module.exports = {
 	arrayRandom,
