@@ -92,6 +92,7 @@ const destroyGame = async ctx => {
 	ctx.session.isWaitingForAnswers = false
 
 	for (const player of ctx.session.players) {
+		if (!isFinite(player.gameScore)) continue // skip players with infinite score
 		const _isPlayerExists = await isPlayerExists({
 			chat_id: ctx.chat.id,
 			player_id: player.id,
